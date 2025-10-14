@@ -55,7 +55,7 @@ interface ExerciseItemProps {
   onRemove: (exerciseId: string) => void;
 }
 
-const ExerciseItem = ({ exercise, onUpdate, onRemove }: ExerciseItemProps) => {
+const ExerciseItem = React.memo(({ exercise, onUpdate, onRemove }: ExerciseItemProps) => {
   const scale = useSharedValue(1);
   
   const animatedStyle = useAnimatedStyle(() => ({
@@ -142,7 +142,7 @@ const ExerciseItem = ({ exercise, onUpdate, onRemove }: ExerciseItemProps) => {
       )}
     </Animated.View>
   );
-};
+});
 
 export default function WorkoutScreen() {
   const { completeWorkout, addXp } = useGameification();

@@ -126,7 +126,7 @@ interface RecipeCardProps {
   getCategoryColor: (category: string) => string;
 }
 
-const RecipeCard = ({ recipe, onPress, getCategoryColor }: RecipeCardProps) => {
+const RecipeCard = React.memo(({ recipe, onPress, getCategoryColor }: RecipeCardProps) => {
   const scale = useSharedValue(1);
   
   const animatedStyle = useAnimatedStyle(() => ({
@@ -194,7 +194,7 @@ const RecipeCard = ({ recipe, onPress, getCategoryColor }: RecipeCardProps) => {
       </Animated.View>
     </TouchableOpacity>
   );
-};
+});
 
 export default function NutritionScreen() {
   const { logMeal, addXp } = useGameification();

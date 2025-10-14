@@ -42,5 +42,5 @@ module.exports = function (api) {
       "@babel/plugin-proposal-export-namespace-from",
       "react-native-worklets/plugin", // react-native-worklets/plugin must be listed last!
     ],
-  };
+  },
 };
