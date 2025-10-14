@@ -17,7 +17,10 @@ import { useGameification } from '@/hooks/useGameification';
 import ProgressRing from '@/components/ProgressRing';
 import WorkoutPlanCard from '@/components/WorkoutPlanCard';
 import WorkoutPlanPreview from '@/components/WorkoutPlanPreview';
+import MuscleGroupSelector from '@/components/MuscleGroupSelector';
+import CustomWorkoutGenerator from '@/components/CustomWorkoutGenerator';
 import { WORKOUT_PLANS, WorkoutPlan } from '@/data/workoutPlans';
+import { MUSCLE_GROUPS, EXERCISE_DATABASE, getExercisesByMuscleGroups } from '@/data/muscleGroups';
 
 import * as Haptics from 'expo-haptics';
 
@@ -29,6 +32,10 @@ interface Exercise {
   weight?: string;
   notes?: string;
   completed?: boolean;
+  muscleGroups?: string[];
+  equipment?: string;
+  instructions?: string[];
+  restTime?: string;
 }
 
 interface WorkoutDay {
@@ -38,12 +45,6 @@ interface WorkoutDay {
 
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
-const EXERCISE_LIBRARY = [
-  'Bench Press', 'Squats', 'Deadlifts', 'Pull-ups', 'Push-ups', 'Shoulder Press',
-  'Barbell Rows', 'Dips', 'Lunges', 'Bicep Curls', 'Tricep Extensions', 'Planks',
-  'Lat Pulldowns', 'Leg Press', 'Calf Raises', 'Russian Twists', 'Burpees', 'Mountain Climbers'
-];
-
 interface ExerciseItemProps {
   exercise: Exercise;
   onUpdate: (exerciseId: string, field: keyof Exercise, value: string | number | boolean) => void;
@@ -51,8 +52,15 @@ interface ExerciseItemProps {
 }
 
 const ExerciseItem = React.memo(({ exercise, onUpdate, onRemove }: ExerciseItemProps) => {
+  const [showDetails, setShowDetails] = useState(false);
+
   const handleComplete = () => {
     onUpdate(exercise.id, 'completed', !exercise.completed);
+  };
+
+  const toggleDetails = () => {
+    setShowDetails(!showDetails);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   return (
@@ -83,15 +91,57 @@ const ExerciseItem = React.memo(({ exercise, onUpdate, onRemove }: ExerciseItemP
             {exercise.sets} sets × {exercise.reps}
             {exercise.weight && ` @ ${exercise.weight}`}
           </Text>
+          {exercise.muscleGroups && (
+            <Text style={styles.muscleGroupTags}>
+              {exercise.muscleGroups.join(', ')}
+            </Text>
+          )}
         </View>
 
-        <TouchableOpacity
-          style={styles.removeButton}
-          onPress={() => onRemove(exercise.id)}
-        >
-          <IconSymbol name="trash" size={20} color={colors.error} />
-        </TouchableOpacity>
+        <View style={styles.exerciseActions}>
+          <TouchableOpacity
+            style={styles.detailsButton}
+            onPress={toggleDetails}
+          >
+            <IconSymbol 
+              name={showDetails ? "chevron.up" : "chevron.down"} 
+              size={16} 
+              color={colors.textSecondary} 
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => onRemove(exercise.id)}
+          >
+            <IconSymbol name="trash" size={20} color={colors.error} />
+          </TouchableOpacity>
+        </View>
       </View>
+
+      {showDetails && (
+        <View style={styles.exerciseDetailsExpanded}>
+          {exercise.instructions && (
+            <View style={styles.instructionsSection}>
+              <Text style={styles.detailsTitle}>Instructions:</Text>
+              {exercise.instructions.map((instruction, index) => (
+                <Text key={index} style={styles.instructionText}>
+                  {index + 1}. {instruction}
+                </Text>
+              ))}
+            </View>
+          )}
+          {exercise.restTime && (
+            <View style={styles.restTimeSection}>
+              <Text style={styles.detailsTitle}>Rest Time: {exercise.restTime}</Text>
+            </View>
+          )}
+          {exercise.equipment && (
+            <View style={styles.equipmentSection}>
+              <Text style={styles.detailsTitle}>Equipment: {exercise.equipment}</Text>
+            </View>
+          )}
+        </View>
+      )}
 
       {!exercise.completed && (
         <View style={styles.exerciseInputs}>
@@ -138,23 +188,81 @@ export default function WorkoutScreen() {
   const [showPlanPreview, setShowPlanPreview] = useState(false);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [workoutTimer, setWorkoutTimer] = useState(0);
-  const [currentView, setCurrentView] = useState<'schedule' | 'plans'>('schedule');
+  const [currentView, setCurrentView] = useState<'schedule' | 'plans' | 'custom'>('schedule');
+  
+  // New state for muscle group selection
+  const [showMuscleGroupSelector, setShowMuscleGroupSelector] = useState(false);
+  const [selectedMuscleGroups, setSelectedMuscleGroups] = useState<string[]>([]);
+  const [showCustomGenerator, setShowCustomGenerator] = useState(false);
+  const [filteredExercises, setFilteredExercises] = useState<string[]>([]);
   
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutDay[]>([
     {
       day: 'Monday',
       exercises: [
-        { id: '1', name: 'Bench Press', sets: 3, reps: '8-10', weight: '135 lbs', completed: false },
-        { id: '2', name: 'Pull-ups', sets: 3, reps: '6-8', completed: false },
-        { id: '3', name: 'Shoulder Press', sets: 3, reps: '10-12', weight: '65 lbs', completed: false },
+        { 
+          id: '1', 
+          name: 'Bench Press', 
+          sets: 3, 
+          reps: '8-10', 
+          weight: '135 lbs', 
+          completed: false,
+          muscleGroups: ['Chest', 'Shoulders', 'Arms'],
+          equipment: 'Barbell, Bench'
+        },
+        { 
+          id: '2', 
+          name: 'Pull-ups', 
+          sets: 3, 
+          reps: '6-8', 
+          completed: false,
+          muscleGroups: ['Back', 'Arms'],
+          equipment: 'Pull-up Bar'
+        },
+        { 
+          id: '3', 
+          name: 'Overhead Press', 
+          sets: 3, 
+          reps: '10-12', 
+          weight: '65 lbs', 
+          completed: false,
+          muscleGroups: ['Shoulders', 'Arms'],
+          equipment: 'Barbell'
+        },
       ]
     },
     {
       day: 'Tuesday',
       exercises: [
-        { id: '4', name: 'Squats', sets: 4, reps: '8-10', weight: '185 lbs', completed: false },
-        { id: '5', name: 'Deadlifts', sets: 3, reps: '5-6', weight: '225 lbs', completed: false },
-        { id: '6', name: 'Lunges', sets: 3, reps: '12 each leg', completed: false },
+        { 
+          id: '4', 
+          name: 'Squats', 
+          sets: 4, 
+          reps: '8-10', 
+          weight: '185 lbs', 
+          completed: false,
+          muscleGroups: ['Legs', 'Glutes'],
+          equipment: 'Barbell'
+        },
+        { 
+          id: '5', 
+          name: 'Deadlifts', 
+          sets: 3, 
+          reps: '5-6', 
+          weight: '225 lbs', 
+          completed: false,
+          muscleGroups: ['Legs', 'Back', 'Glutes'],
+          equipment: 'Barbell'
+        },
+        { 
+          id: '6', 
+          name: 'Lunges', 
+          sets: 3, 
+          reps: '12 each leg', 
+          completed: false,
+          muscleGroups: ['Legs', 'Glutes'],
+          equipment: 'Bodyweight'
+        },
       ]
     },
     {
@@ -164,9 +272,35 @@ export default function WorkoutScreen() {
     {
       day: 'Thursday',
       exercises: [
-        { id: '7', name: 'Dips', sets: 3, reps: '8-12', completed: false },
-        { id: '8', name: 'Bicep Curls', sets: 3, reps: '10-12', weight: '30 lbs', completed: false },
-        { id: '9', name: 'Tricep Extensions', sets: 3, reps: '10-12', weight: '25 lbs', completed: false },
+        { 
+          id: '7', 
+          name: 'Dips', 
+          sets: 3, 
+          reps: '8-12', 
+          completed: false,
+          muscleGroups: ['Arms', 'Chest'],
+          equipment: 'Dip Station'
+        },
+        { 
+          id: '8', 
+          name: 'Bicep Curls', 
+          sets: 3, 
+          reps: '10-12', 
+          weight: '30 lbs', 
+          completed: false,
+          muscleGroups: ['Arms'],
+          equipment: 'Dumbbells'
+        },
+        { 
+          id: '9', 
+          name: 'Tricep Extensions', 
+          sets: 3, 
+          reps: '10-12', 
+          weight: '25 lbs', 
+          completed: false,
+          muscleGroups: ['Arms'],
+          equipment: 'Dumbbells'
+        },
       ]
     },
     {
@@ -176,9 +310,33 @@ export default function WorkoutScreen() {
     {
       day: 'Saturday',
       exercises: [
-        { id: '10', name: 'Planks', sets: 3, reps: '60 seconds', completed: false },
-        { id: '11', name: 'Russian Twists', sets: 3, reps: '20 each side', completed: false },
-        { id: '12', name: 'Burpees', sets: 3, reps: '10', completed: false },
+        { 
+          id: '10', 
+          name: 'Planks', 
+          sets: 3, 
+          reps: '60 seconds', 
+          completed: false,
+          muscleGroups: ['Core'],
+          equipment: 'Bodyweight'
+        },
+        { 
+          id: '11', 
+          name: 'Russian Twists', 
+          sets: 3, 
+          reps: '20 each side', 
+          completed: false,
+          muscleGroups: ['Core'],
+          equipment: 'Bodyweight'
+        },
+        { 
+          id: '12', 
+          name: 'Burpees', 
+          sets: 3, 
+          reps: '10', 
+          completed: false,
+          muscleGroups: ['Cardio', 'Core'],
+          equipment: 'Bodyweight'
+        },
       ]
     },
     {
@@ -197,17 +355,32 @@ export default function WorkoutScreen() {
     return () => clearInterval(interval);
   }, [workoutStarted]);
 
+  React.useEffect(() => {
+    if (selectedMuscleGroups.length > 0) {
+      const exercises = getExercisesByMuscleGroups(selectedMuscleGroups);
+      setFilteredExercises(exercises.map(ex => ex.name));
+    } else {
+      setFilteredExercises([]);
+    }
+  }, [selectedMuscleGroups]);
+
   const getCurrentDayWorkout = () => {
     return workoutPlan.find(day => day.day === selectedDay) || { day: selectedDay, exercises: [] };
   };
 
   const addExercise = (exerciseName: string) => {
+    const exerciseData = EXERCISE_DATABASE.find(ex => ex.name === exerciseName);
+    
     const newExercise: Exercise = {
       id: Date.now().toString(),
       name: exerciseName,
-      sets: 3,
-      reps: '8-10',
+      sets: exerciseData?.defaultSets || 3,
+      reps: exerciseData?.defaultReps || '8-10',
       completed: false,
+      muscleGroups: exerciseData?.primaryMuscleGroups || [],
+      equipment: exerciseData?.equipment.join(', ') || '',
+      instructions: exerciseData?.instructions || [],
+      restTime: exerciseData?.restTime || '60-90 seconds'
     };
 
     setWorkoutPlan(prev => prev.map(day => 
@@ -242,7 +415,7 @@ export default function WorkoutScreen() {
 
     if (field === 'completed' && value === true) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      addXp(25); // Award XP for completing an exercise
+      addXp(25);
     }
   };
 
@@ -275,6 +448,10 @@ export default function WorkoutScreen() {
             weight: exercise.weight,
             notes: exercise.notes,
             completed: false,
+            muscleGroups: exercise.muscleGroups,
+            equipment: exercise.equipment,
+            instructions: [],
+            restTime: exercise.restTime
           }))
         };
       }
@@ -290,6 +467,16 @@ export default function WorkoutScreen() {
       `"${plan.name}" has been applied to your workout schedule. You can now start your workouts!`,
       [{ text: 'Great!', style: 'default' }]
     );
+  };
+
+  const handleGenerateCustomWorkout = (exercises: any[]) => {
+    setWorkoutPlan(prev => prev.map(day => 
+      day.day === selectedDay 
+        ? { ...day, exercises: exercises }
+        : day
+    ));
+    
+    setCurrentView('schedule');
   };
 
   const startWorkout = () => {
@@ -343,6 +530,26 @@ export default function WorkoutScreen() {
           currentView === 'schedule' && styles.selectedViewButtonText
         ]}>
           My Schedule
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[
+          styles.viewButton,
+          currentView === 'custom' && styles.selectedViewButton
+        ]}
+        onPress={() => setCurrentView('custom')}
+      >
+        <IconSymbol 
+          name="sparkles" 
+          size={20} 
+          color={currentView === 'custom' ? colors.card : colors.textSecondary} 
+        />
+        <Text style={[
+          styles.viewButtonText,
+          currentView === 'custom' && styles.selectedViewButtonText
+        ]}>
+          Custom Workout
         </Text>
       </TouchableOpacity>
       
@@ -449,27 +656,154 @@ export default function WorkoutScreen() {
     </View>
   );
 
-  const renderExerciseLibrary = () => (
-    <View style={styles.exerciseLibrary}>
-      <View style={styles.libraryHeader}>
-        <Text style={styles.libraryTitle}>Exercise Library</Text>
-        <TouchableOpacity onPress={() => setShowExerciseLibrary(false)}>
-          <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
-        </TouchableOpacity>
+  const renderExerciseLibrary = () => {
+    const exercisesToShow = selectedMuscleGroups.length > 0 ? filteredExercises : 
+      EXERCISE_DATABASE.map(ex => ex.name);
+
+    return (
+      <View style={styles.exerciseLibrary}>
+        <View style={styles.libraryHeader}>
+          <Text style={styles.libraryTitle}>Exercise Library</Text>
+          <View style={styles.libraryActions}>
+            <TouchableOpacity 
+              style={styles.filterButton}
+              onPress={() => setShowMuscleGroupSelector(true)}
+            >
+              <IconSymbol name="line.3.horizontal.decrease.circle" size={20} color={colors.primary} />
+              <Text style={styles.filterButtonText}>
+                {selectedMuscleGroups.length > 0 ? `${selectedMuscleGroups.length} groups` : 'Filter'}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => setShowExerciseLibrary(false)}>
+              <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
+            </TouchableOpacity>
+          </View>
+        </View>
+        
+        <ScrollView style={styles.libraryList}>
+          {exercisesToShow.map(exerciseName => (
+            <TouchableOpacity
+              key={exerciseName}
+              style={styles.libraryItem}
+              onPress={() => addExercise(exerciseName)}
+            >
+              <IconSymbol name="plus.circle" size={20} color={colors.primary} />
+              <Text style={styles.libraryItemText}>{exerciseName}</Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
       </View>
-      
-      <ScrollView style={styles.libraryList}>
-        {EXERCISE_LIBRARY.map(exercise => (
+    );
+  };
+
+  const renderCustomWorkoutView = () => (
+    <View style={styles.customWorkoutContainer}>
+      <View style={styles.customHeader}>
+        <Text style={styles.customTitle}>Create Custom Workout</Text>
+        <Text style={styles.customSubtitle}>
+          Select muscle groups and generate a personalized workout plan
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.muscleGroupButton}
+        onPress={() => setShowMuscleGroupSelector(true)}
+      >
+        <View style={styles.muscleGroupButtonContent}>
+          <IconSymbol name="figure.strengthtraining.traditional" size={24} color={colors.primary} />
+          <View style={styles.muscleGroupButtonText}>
+            <Text style={styles.muscleGroupButtonTitle}>Select Muscle Groups</Text>
+            <Text style={styles.muscleGroupButtonSubtitle}>
+              {selectedMuscleGroups.length > 0 
+                ? `${selectedMuscleGroups.length} groups selected`
+                : 'Choose which muscles to target'
+              }
+            </Text>
+          </View>
+        </View>
+        <IconSymbol name="chevron.right" size={20} color={colors.textSecondary} />
+      </TouchableOpacity>
+
+      {selectedMuscleGroups.length > 0 && (
+        <View style={styles.selectedMuscleGroups}>
+          <Text style={styles.selectedTitle}>Selected Muscle Groups:</Text>
+          <View style={styles.muscleGroupTags}>
+            {selectedMuscleGroups.map(groupId => {
+              const group = MUSCLE_GROUPS.find(g => g.id === groupId);
+              return (
+                <View key={groupId} style={[styles.muscleGroupTag, { backgroundColor: group?.color + '20' }]}>
+                  <Text style={[styles.muscleGroupTagText, { color: group?.color }]}>
+                    {group?.name}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        </View>
+      )}
+
+      <TouchableOpacity
+        style={[
+          styles.generateWorkoutButton,
+          selectedMuscleGroups.length === 0 && styles.disabledButton
+        ]}
+        onPress={() => setShowCustomGenerator(true)}
+        disabled={selectedMuscleGroups.length === 0}
+      >
+        <IconSymbol 
+          name="sparkles" 
+          size={20} 
+          color={selectedMuscleGroups.length > 0 ? colors.card : colors.textSecondary} 
+        />
+        <Text style={[
+          styles.generateWorkoutButtonText,
+          selectedMuscleGroups.length === 0 && styles.disabledButtonText
+        ]}>
+          Generate Workout Plan
+        </Text>
+      </TouchableOpacity>
+
+      <View style={styles.quickWorkouts}>
+        <Text style={styles.quickWorkoutsTitle}>Quick Workouts</Text>
+        <View style={styles.quickWorkoutButtons}>
           <TouchableOpacity
-            key={exercise}
-            style={styles.libraryItem}
-            onPress={() => addExercise(exercise)}
+            style={styles.quickWorkoutButton}
+            onPress={() => {
+              setSelectedMuscleGroups(['chest', 'shoulders', 'arms']);
+              setShowCustomGenerator(true);
+            }}
           >
-            <IconSymbol name="plus.circle" size={20} color={colors.primary} />
-            <Text style={styles.libraryItemText}>{exercise}</Text>
+            <Text style={styles.quickWorkoutButtonText}>Upper Body</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+          <TouchableOpacity
+            style={styles.quickWorkoutButton}
+            onPress={() => {
+              setSelectedMuscleGroups(['legs', 'glutes']);
+              setShowCustomGenerator(true);
+            }}
+          >
+            <Text style={styles.quickWorkoutButtonText}>Lower Body</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickWorkoutButton}
+            onPress={() => {
+              setSelectedMuscleGroups(['core']);
+              setShowCustomGenerator(true);
+            }}
+          >
+            <Text style={styles.quickWorkoutButtonText}>Core</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.quickWorkoutButton}
+            onPress={() => {
+              setSelectedMuscleGroups(['cardio']);
+              setShowCustomGenerator(true);
+            }}
+          >
+            <Text style={styles.quickWorkoutButtonText}>Cardio</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 
@@ -526,13 +860,22 @@ export default function WorkoutScreen() {
               <IconSymbol name="dumbbell" size={48} color={colors.textSecondary} />
               <Text style={styles.emptyStateText}>No exercises planned</Text>
               <Text style={styles.emptyStateSubtext}>Add exercises or choose a workout plan!</Text>
-              <TouchableOpacity
-                style={styles.browsePlansButton}
-                onPress={() => setCurrentView('plans')}
-              >
-                <IconSymbol name="doc.text" size={16} color={colors.primary} />
-                <Text style={styles.browsePlansButtonText}>Browse Workout Plans</Text>
-              </TouchableOpacity>
+              <View style={styles.emptyStateActions}>
+                <TouchableOpacity
+                  style={styles.browsePlansButton}
+                  onPress={() => setCurrentView('plans')}
+                >
+                  <IconSymbol name="doc.text" size={16} color={colors.primary} />
+                  <Text style={styles.browsePlansButtonText}>Browse Plans</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.createCustomButton}
+                  onPress={() => setCurrentView('custom')}
+                >
+                  <IconSymbol name="sparkles" size={16} color={colors.secondary} />
+                  <Text style={styles.createCustomButtonText}>Create Custom</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           ) : (
             currentWorkout.exercises.map(exercise => (
@@ -562,7 +905,9 @@ export default function WorkoutScreen() {
       >
         {renderViewSelector()}
         
-        {currentView === 'schedule' ? renderScheduleView() : renderWorkoutPlans()}
+        {currentView === 'schedule' && renderScheduleView()}
+        {currentView === 'custom' && renderCustomWorkoutView()}
+        {currentView === 'plans' && renderWorkoutPlans()}
       </ScrollView>
 
       <WorkoutPlanPreview
@@ -573,6 +918,20 @@ export default function WorkoutScreen() {
           setSelectedPlan(null);
         }}
         onSelect={handleSelectWorkoutPlan}
+      />
+
+      <MuscleGroupSelector
+        selectedGroups={selectedMuscleGroups}
+        onSelectionChange={setSelectedMuscleGroups}
+        visible={showMuscleGroupSelector}
+        onClose={() => setShowMuscleGroupSelector(false)}
+      />
+
+      <CustomWorkoutGenerator
+        selectedMuscleGroups={selectedMuscleGroups}
+        visible={showCustomGenerator}
+        onClose={() => setShowCustomGenerator(false)}
+        onGenerateWorkout={handleGenerateCustomWorkout}
       />
     </SafeAreaView>
   );
@@ -605,17 +964,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 8,
     borderRadius: 8,
   },
   selectedViewButton: {
     backgroundColor: colors.primary,
   },
   viewButtonText: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
     color: colors.textSecondary,
-    marginLeft: 6,
+    marginLeft: 4,
   },
   selectedViewButtonText: {
     color: colors.card,
@@ -780,9 +1139,50 @@ const styles = StyleSheet.create({
   exerciseDetails: {
     fontSize: 14,
     color: colors.textSecondary,
+    marginBottom: 4,
+  },
+  muscleGroupTags: {
+    fontSize: 12,
+    color: colors.primary,
+    fontWeight: '500',
+  },
+  exerciseActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  detailsButton: {
+    padding: 4,
   },
   removeButton: {
     padding: 4,
+  },
+  exerciseDetailsExpanded: {
+    marginBottom: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  instructionsSection: {
+    marginBottom: 8,
+  },
+  detailsTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  instructionText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginBottom: 2,
+    paddingLeft: 8,
+  },
+  restTimeSection: {
+    marginBottom: 4,
+  },
+  equipmentSection: {
+    marginBottom: 4,
   },
   exerciseInputs: {
     flexDirection: 'row',
@@ -824,6 +1224,10 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 20,
   },
+  emptyStateActions: {
+    flexDirection: 'row',
+    gap: 12,
+  },
   browsePlansButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -836,6 +1240,22 @@ const styles = StyleSheet.create({
   },
   browsePlansButtonText: {
     color: colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 6,
+  },
+  createCustomButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.secondary,
+  },
+  createCustomButtonText: {
+    color: colors.secondary,
     fontWeight: '600',
     fontSize: 14,
     marginLeft: 6,
@@ -862,6 +1282,27 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: colors.text,
   },
+  libraryActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.card,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  filterButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 4,
+  },
   libraryList: {
     flex: 1,
     padding: 20,
@@ -880,6 +1321,124 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     marginLeft: 12,
+  },
+  customWorkoutContainer: {
+    flex: 1,
+  },
+  customHeader: {
+    marginBottom: 24,
+  },
+  customTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  customSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  muscleGroupButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  muscleGroupButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  muscleGroupButtonText: {
+    marginLeft: 16,
+    flex: 1,
+  },
+  muscleGroupButtonTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  muscleGroupButtonSubtitle: {
+    fontSize: 14,
+    color: colors.textSecondary,
+  },
+  selectedMuscleGroups: {
+    marginBottom: 24,
+  },
+  selectedTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 12,
+  },
+  muscleGroupTag: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+  muscleGroupTagText: {
+    fontSize: 12,
+    fontWeight: '600',
+  },
+  generateWorkoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: colors.primary,
+    paddingVertical: 16,
+    borderRadius: 12,
+    marginBottom: 32,
+  },
+  disabledButton: {
+    backgroundColor: colors.border,
+  },
+  generateWorkoutButtonText: {
+    color: colors.card,
+    fontWeight: '700',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  disabledButtonText: {
+    color: colors.textSecondary,
+  },
+  quickWorkouts: {
+    // Styles for quick workouts section
+  },
+  quickWorkoutsTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  quickWorkoutButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  quickWorkoutButton: {
+    flex: 1,
+    minWidth: '45%',
+    backgroundColor: colors.card,
+    paddingVertical: 16,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
+    alignItems: 'center',
+  },
+  quickWorkoutButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
   },
   workoutPlansContainer: {
     flex: 1,
