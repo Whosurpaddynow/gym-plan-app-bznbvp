@@ -35,7 +35,7 @@ export const ACTIVE_CHALLENGES: Challenge[] = [
     isActive: true,
     isCompleted: false,
     progress: {
-      current: 3,
+      current: 0,
       target: 5,
     },
     reward: {
@@ -55,12 +55,72 @@ export const ACTIVE_CHALLENGES: Challenge[] = [
     isActive: true,
     isCompleted: false,
     progress: {
-      current: 2,
+      current: 0,
       target: 3,
     },
     reward: {
       type: 'badge',
       value: 'Nutrition Expert',
+    },
+  },
+  {
+    id: 'consistency_challenge',
+    title: 'Consistency Challenge',
+    description: 'Workout 3 days in a row',
+    icon: 'calendar',
+    color: colors.secondary,
+    type: 'weekly',
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    isActive: true,
+    isCompleted: false,
+    progress: {
+      current: 0,
+      target: 3,
+    },
+    reward: {
+      type: 'xp',
+      value: 150,
+    },
+  },
+  {
+    id: 'strength_builder',
+    title: 'Strength Builder',
+    description: 'Complete 2 strength workouts this week',
+    icon: 'dumbbell',
+    color: colors.error,
+    type: 'weekly',
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    isActive: true,
+    isCompleted: false,
+    progress: {
+      current: 0,
+      target: 2,
+    },
+    reward: {
+      type: 'xp',
+      value: 100,
+    },
+  },
+  {
+    id: 'cardio_crusher',
+    title: 'Cardio Crusher',
+    description: 'Complete 3 cardio sessions this week',
+    icon: 'heart.fill',
+    color: colors.accent,
+    type: 'weekly',
+    startDate: new Date(),
+    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    isActive: true,
+    isCompleted: false,
+    progress: {
+      current: 0,
+      target: 3,
+    },
+    reward: {
+      type: 'xp',
+      value: 120,
     },
   },
 ];

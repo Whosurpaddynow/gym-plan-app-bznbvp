@@ -1030,6 +1030,1227 @@ export const WORKOUT_PLANS: WorkoutPlan[] = [
       'Listen to your body',
       'Consistency is key'
     ]
+  },
+  // NEW WORKOUT PLANS ADDED BELOW
+  {
+    id: 'push-pull-legs',
+    name: 'Push Pull Legs',
+    description: 'Advanced 6-day split focusing on push movements, pull movements, and legs separately for maximum muscle development.',
+    difficulty: 'Advanced',
+    duration: '12 weeks',
+    daysPerWeek: 6,
+    category: 'strength',
+    targetMuscleGroups: ['Chest', 'Shoulders', 'Triceps', 'Back', 'Biceps', 'Legs', 'Glutes'],
+    equipment: ['Barbell', 'Dumbbells', 'Cable Machine', 'Bench', 'Pull-up Bar'],
+    weeklySchedule: {
+      'Monday': {
+        name: 'Push (Chest, Shoulders, Triceps)',
+        exercises: [
+          {
+            id: 'ppl1-1',
+            name: 'Barbell Bench Press',
+            sets: 4,
+            reps: '6-8',
+            weight: 'Heavy',
+            restTime: '3-4 minutes',
+            muscleGroups: ['Chest', 'Shoulders', 'Triceps'],
+            equipment: 'Barbell',
+            notes: 'Focus on progressive overload'
+          },
+          {
+            id: 'ppl1-2',
+            name: 'Overhead Press',
+            sets: 4,
+            reps: '8-10',
+            weight: 'Heavy',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Shoulders', 'Triceps'],
+            equipment: 'Barbell',
+            notes: 'Keep core tight throughout'
+          },
+          {
+            id: 'ppl1-3',
+            name: 'Incline Dumbbell Press',
+            sets: 3,
+            reps: '10-12',
+            weight: 'Moderate',
+            restTime: '90s-2min',
+            muscleGroups: ['Chest', 'Shoulders'],
+            equipment: 'Dumbbells',
+            notes: '30-45 degree incline'
+          },
+          {
+            id: 'ppl1-4',
+            name: 'Lateral Raises',
+            sets: 4,
+            reps: '12-15',
+            restTime: '60-90s',
+            muscleGroups: ['Shoulders'],
+            equipment: 'Dumbbells',
+            notes: 'Control the negative'
+          },
+          {
+            id: 'ppl1-5',
+            name: 'Tricep Dips',
+            sets: 3,
+            reps: '12-15',
+            restTime: '90s',
+            muscleGroups: ['Triceps'],
+            equipment: 'Dip Station',
+            notes: 'Add weight if too easy'
+          },
+          {
+            id: 'ppl1-6',
+            name: 'Overhead Tricep Extension',
+            sets: 3,
+            reps: '12-15',
+            restTime: '60s',
+            muscleGroups: ['Triceps'],
+            equipment: 'Dumbbells',
+            notes: 'Keep elbows stationary'
+          }
+        ],
+        estimatedDuration: 75,
+        focusAreas: ['Chest Development', 'Shoulder Strength', 'Tricep Mass']
+      },
+      'Tuesday': {
+        name: 'Pull (Back, Biceps)',
+        exercises: [
+          {
+            id: 'ppl2-1',
+            name: 'Deadlifts',
+            sets: 4,
+            reps: '5-6',
+            weight: 'Heavy',
+            restTime: '3-4 minutes',
+            muscleGroups: ['Back', 'Hamstrings', 'Glutes'],
+            equipment: 'Barbell',
+            notes: 'Perfect form is crucial'
+          },
+          {
+            id: 'ppl2-2',
+            name: 'Pull-ups',
+            sets: 4,
+            reps: '8-12',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'Pull-up Bar',
+            notes: 'Add weight if doing more than 12'
+          },
+          {
+            id: 'ppl2-3',
+            name: 'Barbell Rows',
+            sets: 4,
+            reps: '8-10',
+            weight: 'Heavy',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'Barbell',
+            notes: 'Pull to lower chest'
+          },
+          {
+            id: 'ppl2-4',
+            name: 'Cable Rows',
+            sets: 3,
+            reps: '10-12',
+            restTime: '90s',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'Cable Machine',
+            notes: 'Squeeze shoulder blades'
+          },
+          {
+            id: 'ppl2-5',
+            name: 'Barbell Curls',
+            sets: 4,
+            reps: '10-12',
+            restTime: '60-90s',
+            muscleGroups: ['Biceps'],
+            equipment: 'Barbell',
+            notes: 'No swinging or momentum'
+          },
+          {
+            id: 'ppl2-6',
+            name: 'Hammer Curls',
+            sets: 3,
+            reps: '12-15',
+            restTime: '60s',
+            muscleGroups: ['Biceps', 'Forearms'],
+            equipment: 'Dumbbells',
+            notes: 'Neutral grip throughout'
+          }
+        ],
+        estimatedDuration: 70,
+        focusAreas: ['Back Width', 'Back Thickness', 'Bicep Peak']
+      },
+      'Wednesday': {
+        name: 'Legs (Quads, Hamstrings, Glutes, Calves)',
+        exercises: [
+          {
+            id: 'ppl3-1',
+            name: 'Back Squats',
+            sets: 4,
+            reps: '6-8',
+            weight: 'Heavy',
+            restTime: '3-4 minutes',
+            muscleGroups: ['Legs', 'Glutes'],
+            equipment: 'Barbell',
+            notes: 'Go below parallel'
+          },
+          {
+            id: 'ppl3-2',
+            name: 'Romanian Deadlifts',
+            sets: 4,
+            reps: '8-10',
+            weight: 'Heavy',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Hamstrings', 'Glutes'],
+            equipment: 'Barbell',
+            notes: 'Feel the stretch in hamstrings'
+          },
+          {
+            id: 'ppl3-3',
+            name: 'Leg Press',
+            sets: 3,
+            reps: '12-15',
+            weight: 'Moderate',
+            restTime: '90s-2min',
+            muscleGroups: ['Legs', 'Glutes'],
+            equipment: 'Leg Press Machine',
+            notes: 'Full range of motion'
+          },
+          {
+            id: 'ppl3-4',
+            name: 'Leg Curls',
+            sets: 4,
+            reps: '12-15',
+            restTime: '60-90s',
+            muscleGroups: ['Hamstrings'],
+            equipment: 'Leg Curl Machine',
+            notes: 'Squeeze at the top'
+          },
+          {
+            id: 'ppl3-5',
+            name: 'Walking Lunges',
+            sets: 3,
+            reps: '20 total steps',
+            weight: 'Dumbbells',
+            restTime: '90s',
+            muscleGroups: ['Legs', 'Glutes'],
+            equipment: 'Dumbbells',
+            notes: 'Long steps, control the descent'
+          },
+          {
+            id: 'ppl3-6',
+            name: 'Calf Raises',
+            sets: 5,
+            reps: '15-20',
+            restTime: '60s',
+            muscleGroups: ['Calves'],
+            equipment: 'Calf Raise Machine',
+            notes: 'Full stretch and contraction'
+          }
+        ],
+        estimatedDuration: 80,
+        focusAreas: ['Quad Development', 'Hamstring Strength', 'Glute Activation']
+      },
+      'Thursday': {
+        name: 'Push (Chest, Shoulders, Triceps)',
+        exercises: [
+          {
+            id: 'ppl4-1',
+            name: 'Incline Barbell Press',
+            sets: 4,
+            reps: '6-8',
+            weight: 'Heavy',
+            restTime: '3-4 minutes',
+            muscleGroups: ['Chest', 'Shoulders'],
+            equipment: 'Barbell',
+            notes: '30-45 degree incline'
+          },
+          {
+            id: 'ppl4-2',
+            name: 'Dumbbell Shoulder Press',
+            sets: 4,
+            reps: '8-10',
+            weight: 'Heavy',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Shoulders', 'Triceps'],
+            equipment: 'Dumbbells',
+            notes: 'Full range of motion'
+          },
+          {
+            id: 'ppl4-3',
+            name: 'Decline Dumbbell Press',
+            sets: 3,
+            reps: '10-12',
+            weight: 'Moderate',
+            restTime: '90s-2min',
+            muscleGroups: ['Chest', 'Triceps'],
+            equipment: 'Dumbbells',
+            notes: 'Focus on lower chest'
+          },
+          {
+            id: 'ppl4-4',
+            name: 'Cable Lateral Raises',
+            sets: 4,
+            reps: '12-15',
+            restTime: '60-90s',
+            muscleGroups: ['Shoulders'],
+            equipment: 'Cable Machine',
+            notes: 'Constant tension'
+          },
+          {
+            id: 'ppl4-5',
+            name: 'Close-Grip Bench Press',
+            sets: 3,
+            reps: '10-12',
+            restTime: '90s',
+            muscleGroups: ['Triceps', 'Chest'],
+            equipment: 'Barbell',
+            notes: 'Hands shoulder-width apart'
+          },
+          {
+            id: 'ppl4-6',
+            name: 'Cable Tricep Pushdowns',
+            sets: 3,
+            reps: '12-15',
+            restTime: '60s',
+            muscleGroups: ['Triceps'],
+            equipment: 'Cable Machine',
+            notes: 'Keep elbows at sides'
+          }
+        ],
+        estimatedDuration: 70,
+        focusAreas: ['Upper Chest', 'Shoulder Definition', 'Tricep Definition']
+      },
+      'Friday': {
+        name: 'Pull (Back, Biceps)',
+        exercises: [
+          {
+            id: 'ppl5-1',
+            name: 'T-Bar Rows',
+            sets: 4,
+            reps: '8-10',
+            weight: 'Heavy',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'T-Bar',
+            notes: 'Pull to chest, squeeze'
+          },
+          {
+            id: 'ppl5-2',
+            name: 'Lat Pulldowns',
+            sets: 4,
+            reps: '10-12',
+            restTime: '90s-2min',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'Cable Machine',
+            notes: 'Pull to upper chest'
+          },
+          {
+            id: 'ppl5-3',
+            name: 'Cable Rows',
+            sets: 4,
+            reps: '10-12',
+            restTime: '90s',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'Cable Machine',
+            notes: 'Various grip positions'
+          },
+          {
+            id: 'ppl5-4',
+            name: 'Face Pulls',
+            sets: 4,
+            reps: '15-20',
+            restTime: '60s',
+            muscleGroups: ['Rear Delts', 'Upper Back'],
+            equipment: 'Cable Machine',
+            notes: 'Pull to face level'
+          },
+          {
+            id: 'ppl5-5',
+            name: 'Dumbbell Curls',
+            sets: 4,
+            reps: '10-12',
+            restTime: '60-90s',
+            muscleGroups: ['Biceps'],
+            equipment: 'Dumbbells',
+            notes: 'Alternate arms or together'
+          },
+          {
+            id: 'ppl5-6',
+            name: 'Cable Hammer Curls',
+            sets: 3,
+            reps: '12-15',
+            restTime: '60s',
+            muscleGroups: ['Biceps', 'Forearms'],
+            equipment: 'Cable Machine',
+            notes: 'Rope attachment'
+          }
+        ],
+        estimatedDuration: 65,
+        focusAreas: ['Back Detail', 'Rear Delt Development', 'Bicep Shape']
+      },
+      'Saturday': {
+        name: 'Legs (Quads, Hamstrings, Glutes, Calves)',
+        exercises: [
+          {
+            id: 'ppl6-1',
+            name: 'Front Squats',
+            sets: 4,
+            reps: '8-10',
+            weight: 'Heavy',
+            restTime: '2-3 minutes',
+            muscleGroups: ['Legs', 'Core'],
+            equipment: 'Barbell',
+            notes: 'Keep chest up, elbows high'
+          },
+          {
+            id: 'ppl6-2',
+            name: 'Stiff Leg Deadlifts',
+            sets: 4,
+            reps: '10-12',
+            weight: 'Moderate',
+            restTime: '90s-2min',
+            muscleGroups: ['Hamstrings', 'Glutes'],
+            equipment: 'Barbell',
+            notes: 'Keep legs relatively straight'
+          },
+          {
+            id: 'ppl6-3',
+            name: 'Bulgarian Split Squats',
+            sets: 3,
+            reps: '12 each leg',
+            weight: 'Dumbbells',
+            restTime: '90s',
+            muscleGroups: ['Legs', 'Glutes'],
+            equipment: 'Dumbbells',
+            notes: 'Rear foot elevated'
+          },
+          {
+            id: 'ppl6-4',
+            name: 'Leg Extensions',
+            sets: 3,
+            reps: '15-20',
+            restTime: '60s',
+            muscleGroups: ['Quadriceps'],
+            equipment: 'Leg Extension Machine',
+            notes: 'Squeeze at the top'
+          },
+          {
+            id: 'ppl6-5',
+            name: 'Hip Thrusts',
+            sets: 4,
+            reps: '12-15',
+            weight: 'Barbell',
+            restTime: '90s',
+            muscleGroups: ['Glutes', 'Hamstrings'],
+            equipment: 'Barbell',
+            notes: 'Squeeze glutes at top'
+          },
+          {
+            id: 'ppl6-6',
+            name: 'Seated Calf Raises',
+            sets: 4,
+            reps: '20-25',
+            restTime: '60s',
+            muscleGroups: ['Calves'],
+            equipment: 'Seated Calf Machine',
+            notes: 'Full stretch and contraction'
+          }
+        ],
+        estimatedDuration: 75,
+        focusAreas: ['Quad Definition', 'Glute Development', 'Calf Growth']
+      }
+    },
+    benefits: [
+      'Maximum muscle growth potential',
+      'Allows for high training volume',
+      'Excellent muscle specialization',
+      'Great for advanced lifters'
+    ],
+    tips: [
+      'Ensure adequate recovery between sessions',
+      'Focus on progressive overload',
+      'Maintain proper nutrition',
+      'Consider deload weeks every 4-6 weeks'
+    ]
+  },
+  {
+    id: 'functional-fitness',
+    name: 'Functional Fitness',
+    description: 'Real-world movement patterns that improve daily activities and athletic performance.',
+    difficulty: 'Intermediate',
+    duration: '8 weeks',
+    daysPerWeek: 4,
+    category: 'hybrid',
+    targetMuscleGroups: ['Full Body', 'Core', 'Functional Movement'],
+    equipment: ['Kettlebells', 'Medicine Ball', 'Resistance Bands', 'TRX'],
+    weeklySchedule: {
+      'Monday': {
+        name: 'Movement Patterns',
+        exercises: [
+          {
+            id: 'ff1-1',
+            name: 'Kettlebell Swings',
+            sets: 4,
+            reps: '20-30',
+            restTime: '90s',
+            muscleGroups: ['Glutes', 'Hamstrings', 'Core'],
+            equipment: 'Kettlebell',
+            notes: 'Hip hinge movement, explosive hip drive'
+          },
+          {
+            id: 'ff1-2',
+            name: 'Turkish Get-ups',
+            sets: 3,
+            reps: '5 each side',
+            restTime: '2 minutes',
+            muscleGroups: ['Full Body', 'Core', 'Shoulders'],
+            equipment: 'Kettlebell',
+            notes: 'Slow and controlled, focus on stability'
+          },
+          {
+            id: 'ff1-3',
+            name: 'Medicine Ball Slams',
+            sets: 4,
+            reps: '15-20',
+            restTime: '60s',
+            muscleGroups: ['Core', 'Shoulders', 'Full Body'],
+            equipment: 'Medicine Ball',
+            notes: 'Explosive movement, engage core'
+          },
+          {
+            id: 'ff1-4',
+            name: 'Farmer\'s Walk',
+            sets: 3,
+            reps: '40-60 steps',
+            restTime: '90s',
+            muscleGroups: ['Grip', 'Core', 'Legs'],
+            equipment: 'Kettlebells',
+            notes: 'Keep chest up, tight core'
+          },
+          {
+            id: 'ff1-5',
+            name: 'TRX Rows',
+            sets: 3,
+            reps: '12-15',
+            restTime: '60s',
+            muscleGroups: ['Back', 'Biceps', 'Core'],
+            equipment: 'TRX',
+            notes: 'Body angle determines difficulty'
+          }
+        ],
+        estimatedDuration: 50,
+        focusAreas: ['Movement Quality', 'Core Stability', 'Power Development']
+      },
+      'Tuesday': {
+        name: 'Mobility & Recovery',
+        exercises: [
+          {
+            id: 'ff2-1',
+            name: 'Dynamic Warm-up',
+            sets: 1,
+            reps: '10 minutes',
+            muscleGroups: ['Full Body'],
+            equipment: 'None',
+            notes: 'Leg swings, arm circles, hip circles'
+          },
+          {
+            id: 'ff2-2',
+            name: 'Yoga Flow',
+            sets: 1,
+            reps: '15 minutes',
+            muscleGroups: ['Full Body'],
+            equipment: 'None',
+            notes: 'Sun salutations, warrior poses'
+          },
+          {
+            id: 'ff2-3',
+            name: 'Foam Rolling',
+            sets: 1,
+            reps: '10 minutes',
+            muscleGroups: ['Full Body'],
+            equipment: 'Foam Roller',
+            notes: 'Focus on tight areas'
+          },
+          {
+            id: 'ff2-4',
+            name: 'Static Stretching',
+            sets: 1,
+            reps: '10 minutes',
+            muscleGroups: ['Full Body'],
+            equipment: 'None',
+            notes: 'Hold each stretch 30-60 seconds'
+          }
+        ],
+        estimatedDuration: 45,
+        focusAreas: ['Mobility', 'Recovery', 'Flexibility']
+      },
+      'Thursday': {
+        name: 'Power & Agility',
+        exercises: [
+          {
+            id: 'ff3-1',
+            name: 'Box Jumps',
+            sets: 4,
+            reps: '8-12',
+            restTime: '2 minutes',
+            muscleGroups: ['Legs', 'Power'],
+            equipment: 'Plyo Box',
+            notes: 'Land softly, step down'
+          },
+          {
+            id: 'ff3-2',
+            name: 'Battle Ropes',
+            sets: 4,
+            reps: '30s work / 30s rest',
+            muscleGroups: ['Arms', 'Core', 'Cardio'],
+            equipment: 'Battle Ropes',
+            notes: 'Various patterns - waves, spirals, slams'
+          },
+          {
+            id: 'ff3-3',
+            name: 'Agility Ladder',
+            sets: 3,
+            reps: '5 patterns',
+            restTime: '60s',
+            muscleGroups: ['Legs', 'Coordination'],
+            equipment: 'Agility Ladder',
+            notes: 'Focus on quick feet and coordination'
+          },
+          {
+            id: 'ff3-4',
+            name: 'Medicine Ball Rotational Throws',
+            sets: 3,
+            reps: '10 each side',
+            restTime: '90s',
+            muscleGroups: ['Core', 'Power'],
+            equipment: 'Medicine Ball',
+            notes: 'Explosive rotation from core'
+          },
+          {
+            id: 'ff3-5',
+            name: 'Resistance Band Exercises',
+            sets: 3,
+            reps: '15-20',
+            restTime: '45s',
+            muscleGroups: ['Various'],
+            equipment: 'Resistance Bands',
+            notes: 'Multiple exercises - squats, rows, presses'
+          }
+        ],
+        estimatedDuration: 45,
+        focusAreas: ['Power Development', 'Agility', 'Coordination']
+      },
+      'Saturday': {
+        name: 'Functional Strength',
+        exercises: [
+          {
+            id: 'ff4-1',
+            name: 'Goblet Squats',
+            sets: 4,
+            reps: '15-20',
+            restTime: '90s',
+            muscleGroups: ['Legs', 'Core'],
+            equipment: 'Kettlebell',
+            notes: 'Hold weight at chest level'
+          },
+          {
+            id: 'ff4-2',
+            name: 'Single-Arm Kettlebell Press',
+            sets: 3,
+            reps: '8-12 each arm',
+            restTime: '90s',
+            muscleGroups: ['Shoulders', 'Core'],
+            equipment: 'Kettlebell',
+            notes: 'Engage core for stability'
+          },
+          {
+            id: 'ff4-3',
+            name: 'Renegade Rows',
+            sets: 3,
+            reps: '10-12',
+            restTime: '90s',
+            muscleGroups: ['Back', 'Core', 'Shoulders'],
+            equipment: 'Dumbbells',
+            notes: 'Maintain plank position'
+          },
+          {
+            id: 'ff4-4',
+            name: 'Loaded Carries Variation',
+            sets: 3,
+            reps: '40-60 steps',
+            restTime: '2 minutes',
+            muscleGroups: ['Full Body', 'Core'],
+            equipment: 'Various',
+            notes: 'Suitcase, overhead, or front-loaded'
+          },
+          {
+            id: 'ff4-5',
+            name: 'TRX Pike',
+            sets: 3,
+            reps: '12-15',
+            restTime: '60s',
+            muscleGroups: ['Core', 'Shoulders'],
+            equipment: 'TRX',
+            notes: 'Pull knees to chest in plank position'
+          }
+        ],
+        estimatedDuration: 50,
+        focusAreas: ['Functional Strength', 'Core Stability', 'Real-world Movement']
+      }
+    },
+    benefits: [
+      'Improves daily movement patterns',
+      'Enhances athletic performance',
+      'Builds functional strength',
+      'Reduces injury risk'
+    ],
+    tips: [
+      'Focus on movement quality over quantity',
+      'Progress gradually with load and complexity',
+      'Listen to your body',
+      'Incorporate mobility work regularly'
+    ]
+  },
+  {
+    id: 'home-hiit-advanced',
+    name: 'Advanced Home HIIT',
+    description: 'Intense bodyweight HIIT workouts for advanced fitness levels, no equipment needed.',
+    difficulty: 'Advanced',
+    duration: '8 weeks',
+    daysPerWeek: 5,
+    category: 'cardio',
+    targetMuscleGroups: ['Full Body', 'Cardiovascular System'],
+    equipment: ['None'],
+    weeklySchedule: {
+      'Monday': {
+        name: 'Full Body Burner',
+        exercises: [
+          {
+            id: 'ahiit1-1',
+            name: 'Burpee Box Jumps',
+            sets: 5,
+            reps: '60s work / 20s rest',
+            muscleGroups: ['Full Body', 'Power'],
+            equipment: 'Bodyweight',
+            notes: 'Explosive movement, land softly'
+          },
+          {
+            id: 'ahiit1-2',
+            name: 'Single-Leg Burpees',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Full Body', 'Balance'],
+            equipment: 'Bodyweight',
+            notes: 'Alternate legs each rep'
+          },
+          {
+            id: 'ahiit1-3',
+            name: 'Plyometric Push-ups',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Chest', 'Power'],
+            equipment: 'Bodyweight',
+            notes: 'Explosive push off ground'
+          },
+          {
+            id: 'ahiit1-4',
+            name: 'Jump Squat 180s',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Legs', 'Power', 'Coordination'],
+            equipment: 'Bodyweight',
+            notes: 'Full 180-degree rotation'
+          },
+          {
+            id: 'ahiit1-5',
+            name: 'Mountain Climber Cross-overs',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Core', 'Cardio'],
+            equipment: 'Bodyweight',
+            notes: 'Bring knee to opposite elbow'
+          }
+        ],
+        estimatedDuration: 35,
+        focusAreas: ['Power', 'Full Body Conditioning', 'Metabolic Boost']
+      },
+      'Tuesday': {
+        name: 'Core Destroyer',
+        exercises: [
+          {
+            id: 'ahiit2-1',
+            name: 'Hollow Body Rocks',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Core'],
+            equipment: 'Bodyweight',
+            notes: 'Maintain hollow position throughout'
+          },
+          {
+            id: 'ahiit2-2',
+            name: 'V-ups',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Core'],
+            equipment: 'Bodyweight',
+            notes: 'Touch toes at top of movement'
+          },
+          {
+            id: 'ahiit2-3',
+            name: 'Plank Up-downs',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Core', 'Shoulders'],
+            equipment: 'Bodyweight',
+            notes: 'Alternate leading arm'
+          },
+          {
+            id: 'ahiit2-4',
+            name: 'Russian Twist Jumps',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Core', 'Power'],
+            equipment: 'Bodyweight',
+            notes: 'Jump and rotate in air'
+          },
+          {
+            id: 'ahiit2-5',
+            name: 'Dead Bug Hold',
+            sets: 3,
+            reps: '60s hold',
+            restTime: '30s',
+            muscleGroups: ['Core'],
+            equipment: 'Bodyweight',
+            notes: 'Maintain lower back contact with floor'
+          }
+        ],
+        estimatedDuration: 30,
+        focusAreas: ['Core Strength', 'Stability', 'Endurance']
+      },
+      'Wednesday': {
+        name: 'Lower Body Power',
+        exercises: [
+          {
+            id: 'ahiit3-1',
+            name: 'Pistol Squats',
+            sets: 4,
+            reps: '30s each leg',
+            restTime: '30s',
+            muscleGroups: ['Legs', 'Balance'],
+            equipment: 'Bodyweight',
+            notes: 'Assist with hand if needed'
+          },
+          {
+            id: 'ahiit3-2',
+            name: 'Jump Lunges',
+            sets: 5,
+            reps: '60s work / 20s rest',
+            muscleGroups: ['Legs', 'Power'],
+            equipment: 'Bodyweight',
+            notes: 'Explosive switch, soft landing'
+          },
+          {
+            id: 'ahiit3-3',
+            name: 'Single-Leg Glute Bridge Pulses',
+            sets: 4,
+            reps: '45s each leg',
+            restTime: '15s',
+            muscleGroups: ['Glutes', 'Hamstrings'],
+            equipment: 'Bodyweight',
+            notes: 'Small pulses at top position'
+          },
+          {
+            id: 'ahiit3-4',
+            name: 'Broad Jumps',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Legs', 'Power'],
+            equipment: 'Bodyweight',
+            notes: 'Jump forward, land softly'
+          },
+          {
+            id: 'ahiit3-5',
+            name: 'Wall Sit Pulses',
+            sets: 3,
+            reps: '60s',
+            restTime: '30s',
+            muscleGroups: ['Legs', 'Endurance'],
+            equipment: 'Wall',
+            notes: 'Small up and down movements'
+          }
+        ],
+        estimatedDuration: 32,
+        focusAreas: ['Lower Body Power', 'Unilateral Strength', 'Endurance']
+      },
+      'Thursday': {
+        name: 'Upper Body Blast',
+        exercises: [
+          {
+            id: 'ahiit4-1',
+            name: 'Archer Push-ups',
+            sets: 4,
+            reps: '30s each side',
+            restTime: '30s',
+            muscleGroups: ['Chest', 'Shoulders', 'Core'],
+            equipment: 'Bodyweight',
+            notes: 'Shift weight to one arm'
+          },
+          {
+            id: 'ahiit4-2',
+            name: 'Handstand Push-ups',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Shoulders', 'Triceps'],
+            equipment: 'Wall',
+            notes: 'Use wall for support if needed'
+          },
+          {
+            id: 'ahiit4-3',
+            name: 'Diamond Push-ups',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Triceps', 'Chest'],
+            equipment: 'Bodyweight',
+            notes: 'Hands form diamond shape'
+          },
+          {
+            id: 'ahiit4-4',
+            name: 'Pike Walk-outs',
+            sets: 4,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Shoulders', 'Core'],
+            equipment: 'Bodyweight',
+            notes: 'Walk hands out from pike position'
+          },
+          {
+            id: 'ahiit4-5',
+            name: 'Tricep Dip Pulses',
+            sets: 3,
+            reps: '60s',
+            restTime: '30s',
+            muscleGroups: ['Triceps'],
+            equipment: 'Chair',
+            notes: 'Small pulses at bottom position'
+          }
+        ],
+        estimatedDuration: 30,
+        focusAreas: ['Upper Body Strength', 'Pushing Power', 'Muscular Endurance']
+      },
+      'Friday': {
+        name: 'Metabolic Finisher',
+        exercises: [
+          {
+            id: 'ahiit5-1',
+            name: 'Tabata Burpees',
+            sets: 8,
+            reps: '20s work / 10s rest',
+            muscleGroups: ['Full Body'],
+            equipment: 'Bodyweight',
+            notes: 'Maximum effort for 4 minutes total'
+          },
+          {
+            id: 'ahiit5-2',
+            name: 'Sprint in Place',
+            sets: 4,
+            reps: '30s work / 30s rest',
+            muscleGroups: ['Legs', 'Cardio'],
+            equipment: 'Bodyweight',
+            notes: 'High knees, maximum speed'
+          },
+          {
+            id: 'ahiit5-3',
+            name: 'Jumping Jack Variations',
+            sets: 3,
+            reps: '60s work / 20s rest',
+            muscleGroups: ['Full Body', 'Cardio'],
+            equipment: 'Bodyweight',
+            notes: 'Mix regular, cross-over, and squat jacks'
+          },
+          {
+            id: 'ahiit5-4',
+            name: 'Bear Crawl to Crab Walk',
+            sets: 3,
+            reps: '45s work / 15s rest',
+            muscleGroups: ['Full Body', 'Coordination'],
+            equipment: 'Bodyweight',
+            notes: 'Transition between movements'
+          }
+        ],
+        estimatedDuration: 25,
+        focusAreas: ['Metabolic Conditioning', 'Fat Burning', 'Mental Toughness']
+      }
+    },
+    benefits: [
+      'Maximum calorie burn',
+      'Improves cardiovascular fitness',
+      'Builds mental toughness',
+      'No equipment required'
+    ],
+    tips: [
+      'Maintain proper form even when fatigued',
+      'Scale intensity based on fitness level',
+      'Stay hydrated throughout',
+      'Allow adequate recovery between sessions'
+    ]
+  },
+  {
+    id: 'strength-endurance',
+    name: 'Strength Endurance',
+    description: 'Build both strength and muscular endurance with moderate weights and higher repetitions.',
+    difficulty: 'Intermediate',
+    duration: '10 weeks',
+    daysPerWeek: 4,
+    category: 'hybrid',
+    targetMuscleGroups: ['Full Body', 'Muscular Endurance'],
+    equipment: ['Dumbbells', 'Barbell', 'Kettlebells', 'Resistance Bands'],
+    weeklySchedule: {
+      'Monday': {
+        name: 'Upper Body Endurance',
+        exercises: [
+          {
+            id: 'se1-1',
+            name: 'Push-up Variations Circuit',
+            sets: 4,
+            reps: '15-20 each variation',
+            restTime: '90s',
+            muscleGroups: ['Chest', 'Shoulders', 'Triceps'],
+            equipment: 'Bodyweight',
+            notes: 'Regular, wide, diamond, incline push-ups'
+          },
+          {
+            id: 'se1-2',
+            name: 'Dumbbell Thrusters',
+            sets: 4,
+            reps: '15-20',
+            weight: 'Light-Moderate',
+            restTime: '90s',
+            muscleGroups: ['Full Body'],
+            equipment: 'Dumbbells',
+            notes: 'Squat to overhead press combination'
+          },
+          {
+            id: 'se1-3',
+            name: 'Resistance Band Rows',
+            sets: 3,
+            reps: '20-25',
+            restTime: '60s',
+            muscleGroups: ['Back', 'Biceps'],
+            equipment: 'Resistance Bands',
+            notes: 'Various angles and grips'
+          },
+          {
+            id: 'se1-4',
+            name: 'Dumbbell Shoulder Complex',
+            sets: 3,
+            reps: '12-15 each exercise',
+            restTime: '90s',
+            muscleGroups: ['Shoulders'],
+            equipment: 'Dumbbells',
+            notes: 'Front raise, lateral raise, rear delt fly'
+          },
+          {
+            id: 'se1-5',
+            name: 'Tricep Dip Ladder',
+            sets: 3,
+            reps: '10-15-20',
+            restTime: '60s',
+            muscleGroups: ['Triceps'],
+            equipment: 'Chair/Bench',
+            notes: 'Increase reps each set'
+          }
+        ],
+        estimatedDuration: 55,
+        focusAreas: ['Upper Body Endurance', 'Muscular Stamina', 'Work Capacity']
+      },
+      'Tuesday': {
+        name: 'Lower Body Endurance',
+        exercises: [
+          {
+            id: 'se2-1',
+            name: 'Goblet Squat to Calf Raise',
+            sets: 4,
+            reps: '20-25',
+            weight: 'Moderate',
+            restTime: '90s',
+            muscleGroups: ['Legs', 'Calves'],
+            equipment: 'Kettlebell',
+            notes: 'Squat up, then calf raise'
+          },
+          {
+            id: 'se2-2',
+            name: 'Walking Lunge Matrix',
+            sets: 3,
+            reps: '15 each direction',
+            restTime: '2 minutes',
+            muscleGroups: ['Legs', 'Glutes'],
+            equipment: 'Bodyweight',
+            notes: 'Forward, reverse, lateral lunges'
+          },
+          {
+            id: 'se2-3',
+            name: 'Single-Leg RDL',
+            sets: 3,
+            reps: '12-15 each leg',
+            weight: 'Light',
+            restTime: '90s',
+            muscleGroups: ['Hamstrings', 'Glutes', 'Balance'],
+            equipment: 'Dumbbells',
+            notes: 'Focus on balance and control'
+          },
+          {
+            id: 'se2-4',
+            name: 'Wall Sit Variations',
+            sets: 3,
+            reps: '45-60s each',
+            restTime: '90s',
+            muscleGroups: ['Legs', 'Endurance'],
+            equipment: 'Wall',
+            notes: 'Regular, single-leg, calf raises'
+          },
+          {
+            id: 'se2-5',
+            name: 'Step-up Complex',
+            sets: 3,
+            reps: '15 each leg',
+            restTime: '90s',
+            muscleGroups: ['Legs', 'Power'],
+            equipment: 'Bench/Box',
+            notes: 'Step-up, knee drive, balance'
+          }
+        ],
+        estimatedDuration: 50,
+        focusAreas: ['Lower Body Endurance', 'Functional Movement', 'Balance']
+      },
+      'Thursday': {
+        name: 'Full Body Circuit',
+        exercises: [
+          {
+            id: 'se3-1',
+            name: 'Burpee to Tuck Jump',
+            sets: 4,
+            reps: '12-15',
+            restTime: '90s',
+            muscleGroups: ['Full Body', 'Power'],
+            equipment: 'Bodyweight',
+            notes: 'Add tuck jump at end of burpee'
+          },
+          {
+            id: 'se3-2',
+            name: 'Kettlebell Swing to Squat',
+            sets: 4,
+            reps: '20-25',
+            weight: 'Moderate',
+            restTime: '90s',
+            muscleGroups: ['Full Body'],
+            equipment: 'Kettlebell',
+            notes: 'Swing up, then squat down'
+          },
+          {
+            id: 'se3-3',
+            name: 'Renegade Row to Push-up',
+            sets: 3,
+            reps: '12-15',
+            restTime: '90s',
+            muscleGroups: ['Full Body', 'Core'],
+            equipment: 'Dumbbells',
+            notes: 'Row each arm, then push-up'
+          },
+          {
+            id: 'se3-4',
+            name: 'Mountain Climber to Jump Squat',
+            sets: 4,
+            reps: '20 total',
+            restTime: '60s',
+            muscleGroups: ['Full Body', 'Cardio'],
+            equipment: 'Bodyweight',
+            notes: '10 mountain climbers, then jump squat'
+          },
+          {
+            id: 'se3-5',
+            name: 'Plank Complex',
+            sets: 3,
+            reps: '45s each position',
+            restTime: '90s',
+            muscleGroups: ['Core'],
+            equipment: 'Bodyweight',
+            notes: 'Regular, side, reverse plank'
+          }
+        ],
+        estimatedDuration: 45,
+        focusAreas: ['Full Body Integration', 'Metabolic Conditioning', 'Core Strength']
+      },
+      'Saturday': {
+        name: 'Strength Endurance Test',
+        exercises: [
+          {
+            id: 'se4-1',
+            name: 'Push-up Test',
+            sets: 1,
+            reps: 'Maximum',
+            restTime: '3 minutes',
+            muscleGroups: ['Chest', 'Shoulders', 'Triceps'],
+            equipment: 'Bodyweight',
+            notes: 'Test maximum push-ups in 2 minutes'
+          },
+          {
+            id: 'se4-2',
+            name: 'Bodyweight Squat Test',
+            sets: 1,
+            reps: 'Maximum',
+            restTime: '3 minutes',
+            muscleGroups: ['Legs'],
+            equipment: 'Bodyweight',
+            notes: 'Test maximum squats in 2 minutes'
+          },
+          {
+            id: 'se4-3',
+            name: 'Plank Hold Test',
+            sets: 1,
+            reps: 'Maximum time',
+            restTime: '3 minutes',
+            muscleGroups: ['Core'],
+            equipment: 'Bodyweight',
+            notes: 'Hold plank as long as possible'
+          },
+          {
+            id: 'se4-4',
+            name: 'Burpee Test',
+            sets: 1,
+            reps: 'Maximum',
+            restTime: '5 minutes',
+            muscleGroups: ['Full Body'],
+            equipment: 'Bodyweight',
+            notes: 'Maximum burpees in 5 minutes'
+          },
+          {
+            id: 'se4-5',
+            name: 'Recovery Stretching',
+            sets: 1,
+            reps: '15 minutes',
+            muscleGroups: ['Full Body'],
+            equipment: 'None',
+            notes: 'Full body stretching routine'
+          }
+        ],
+        estimatedDuration: 40,
+        focusAreas: ['Fitness Testing', 'Progress Tracking', 'Recovery']
+      }
+    },
+    benefits: [
+      'Improves muscular endurance',
+      'Builds work capacity',
+      'Enhances cardiovascular fitness',
+      'Develops mental toughness'
+    ],
+    tips: [
+      'Focus on maintaining form throughout high reps',
+      'Gradually increase volume over time',
+      'Track your progress weekly',
+      'Ensure adequate nutrition and hydration'
+    ]
   }
 ];
 
@@ -1042,7 +2263,7 @@ export const MUSCLE_GROUPS = [
 export const EQUIPMENT_TYPES = [
   'Barbell', 'Dumbbells', 'Cable Machine', 'Bench', 'Pull-up Bar',
   'Bodyweight', 'Resistance Bands', 'Kettlebells', 'Medicine Ball',
-  'None'
+  'TRX', 'Battle Ropes', 'Plyo Box', 'Agility Ladder', 'None'
 ];
 
 export const DIFFICULTY_LEVELS = ['Beginner', 'Intermediate', 'Advanced'];

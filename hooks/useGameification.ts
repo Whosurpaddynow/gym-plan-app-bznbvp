@@ -6,30 +6,28 @@ import { ACTIVE_CHALLENGES } from '@/data/challenges';
 import * as Haptics from 'expo-haptics';
 
 export const useGameification = () => {
+  // Reset user stats to level 1 and initial values
   const [userStats, setUserStats] = useState<UserStats>({
-    level: 3,
-    xp: 750,
-    xpToNextLevel: 250,
-    totalWorkouts: 12,
-    currentStreak: 3,
-    longestStreak: 8,
-    totalCaloriesLogged: 15,
-    achievementsUnlocked: 1,
-    challengesCompleted: 5,
+    level: 1,
+    xp: 0,
+    xpToNextLevel: 1000,
+    totalWorkouts: 0,
+    currentStreak: 0,
+    longestStreak: 0,
+    totalCaloriesLogged: 0,
+    achievementsUnlocked: 0,
+    challengesCompleted: 0,
   });
 
   const [achievements, setAchievements] = useState<Achievement[]>(ACHIEVEMENTS);
   const [challenges, setChallenges] = useState<Challenge[]>(ACTIVE_CHALLENGES);
   
+  // Reset streak data to initial values
   const [streakData, setStreakData] = useState<StreakData>({
-    current: 3,
-    longest: 8,
-    lastWorkoutDate: new Date(Date.now() - 24 * 60 * 60 * 1000),
-    streakDates: [
-      new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    ],
+    current: 0,
+    longest: 0,
+    lastWorkoutDate: undefined,
+    streakDates: [],
   });
 
   const calculateLevel = (xp: number) => {
