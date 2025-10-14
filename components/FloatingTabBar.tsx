@@ -52,18 +52,27 @@ export default function FloatingTabBar({
   };
 
   const animatedStyle = useAnimatedStyle(() => {
-    return {
-      transform: [
-        {
-          translateX: interpolate(
-            animatedValue.value,
-            [0, tabs.length - 1],
-            [0, containerWidth / tabs.length * (tabs.length - 1)]
-          ),
-        },
-      ],
-    };
-  });
+    try {
+      const translateX = interpolate(
+        animatedValue.value || 0,
+        [0, tabs.length - 1],
+        [0, containerWidth / tabs.length * (tabs.length - 1)]
+      );
+      
+      return {
+        transform: [
+          {
+            translateX: isNaN(translateX) ? 0 : translateX,
+          },
+        ],
+      };
+    } catch (error) {
+      console.log('FloatingTabBar animatedStyle error:', error);
+      return {
+        transform: [{ translateX: 0 }],
+      };
+    }
+  }, [containerWidth, tabs.length]);
 
   // Find the active tab index
   const activeIndex = tabs.findIndex(tab => {
@@ -75,10 +84,16 @@ export default function FloatingTabBar({
 
   React.useEffect(() => {
     if (activeIndex >= 0) {
-      animatedValue.value = withSpring(activeIndex, {
-        damping: 15,
-        stiffness: 150,
-      });
+      try {
+        animatedValue.value = withSpring(activeIndex, {
+          damping: 15,
+          stiffness: 150,
+        });
+      } catch (error) {
+        console.log('FloatingTabBar animation error:', error);
+        // Fallback to direct value assignment
+        animatedValue.value = activeIndex;
+      }
     }
   }, [activeIndex, animatedValue]);
 

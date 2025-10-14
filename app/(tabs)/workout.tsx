@@ -18,12 +18,7 @@ import ProgressRing from '@/components/ProgressRing';
 import WorkoutPlanCard from '@/components/WorkoutPlanCard';
 import WorkoutPlanPreview from '@/components/WorkoutPlanPreview';
 import { WORKOUT_PLANS, WorkoutPlan } from '@/data/workoutPlans';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-  withSequence,
-} from 'react-native-reanimated';
+
 import * as Haptics from 'expo-haptics';
 
 interface Exercise {
@@ -56,22 +51,12 @@ interface ExerciseItemProps {
 }
 
 const ExerciseItem = React.memo(({ exercise, onUpdate, onRemove }: ExerciseItemProps) => {
-  const scale = useSharedValue(1);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   const handleComplete = () => {
-    scale.value = withSequence(
-      withSpring(0.95),
-      withSpring(1)
-    );
     onUpdate(exercise.id, 'completed', !exercise.completed);
   };
 
   return (
-    <Animated.View style={[styles.exerciseCard, animatedStyle]}>
+    <View style={styles.exerciseCard}>
       <View style={styles.exerciseHeader}>
         <TouchableOpacity
           style={[
@@ -140,7 +125,7 @@ const ExerciseItem = React.memo(({ exercise, onUpdate, onRemove }: ExerciseItemP
           </View>
         </View>
       )}
-    </Animated.View>
+    </View>
   );
 });
 

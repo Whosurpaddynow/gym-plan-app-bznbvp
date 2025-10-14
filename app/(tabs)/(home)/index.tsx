@@ -35,24 +35,24 @@ export default function HomeScreen() {
   const quickStats = [
     { 
       label: 'Level', 
-      value: userStats.level.toString(), 
+      value: (userStats?.level || 1).toString(), 
       icon: 'star.fill', 
       color: colors.primary,
-      progress: (userStats.xp % 1000) / 1000,
+      progress: ((userStats?.xp || 0) % 1000) / 1000,
     },
     { 
       label: 'Streak', 
-      value: `${streakData.current} days`, 
+      value: `${streakData?.current || 0} days`, 
       icon: 'flame.fill', 
       color: colors.error,
-      progress: Math.min(streakData.current / 30, 1),
+      progress: Math.min((streakData?.current || 0) / 30, 1),
     },
     { 
       label: 'Workouts', 
-      value: userStats.totalWorkouts.toString(), 
+      value: (userStats?.totalWorkouts || 0).toString(), 
       icon: 'dumbbell', 
       color: colors.secondary,
-      progress: (userStats.totalWorkouts % 10) / 10,
+      progress: ((userStats?.totalWorkouts || 0) % 10) / 10,
     },
     { 
       label: 'XP Today', 
@@ -122,7 +122,7 @@ export default function HomeScreen() {
           onPress={() => router.push('/(tabs)/achievements')}
         >
           <IconSymbol name="star.fill" size={16} color={colors.card} />
-          <Text style={styles.levelText}>Lv. {userStats.level}</Text>
+          <Text style={styles.levelText}>Lv. {userStats?.level || 1}</Text>
         </TouchableOpacity>
       </View>
     );
@@ -133,10 +133,9 @@ export default function HomeScreen() {
       <Text style={styles.sectionTitle}>Today's Progress</Text>
       <View style={styles.statsGrid}>
         {quickStats.map((stat, index) => (
-          <Animated.View 
+          <View 
             key={index} 
             style={styles.statCard}
-            entering={withDelay(index * 100, withSpring({}))}
           >
             <ProgressRing
               progress={stat.progress}
@@ -148,7 +147,7 @@ export default function HomeScreen() {
             </ProgressRing>
             <Text style={styles.statValue}>{stat.value}</Text>
             <Text style={styles.statLabel}>{stat.label}</Text>
-          </Animated.View>
+          </View>
         ))}
       </View>
     </View>
@@ -201,7 +200,7 @@ export default function HomeScreen() {
   );
 
   const renderRecentAchievements = () => {
-    const recentAchievements = achievements.filter(a => a.unlocked).slice(0, 3);
+    const recentAchievements = (achievements || []).filter(a => a?.unlocked).slice(0, 3);
     
     if (recentAchievements.length === 0) return null;
 
@@ -229,7 +228,7 @@ export default function HomeScreen() {
   };
 
   const renderActiveChallenges = () => {
-    const activeChallenges = challenges.filter(c => c.isActive && !c.isCompleted).slice(0, 2);
+    const activeChallenges = (challenges || []).filter(c => c?.isActive && !c?.isCompleted).slice(0, 2);
     
     if (activeChallenges.length === 0) return null;
 
@@ -250,12 +249,12 @@ export default function HomeScreen() {
               <View style={styles.challengeText}>
                 <Text style={styles.challengeTitle}>{challenge.title}</Text>
                 <Text style={styles.challengeProgress}>
-                  {challenge.progress.current} / {challenge.progress.target}
+                  {challenge.progress?.current || 0} / {challenge.progress?.target || 1}
                 </Text>
               </View>
             </View>
             <ProgressRing
-              progress={challenge.progress.current / challenge.progress.target}
+              progress={(challenge.progress?.current || 0) / (challenge.progress?.target || 1)}
               size={40}
               strokeWidth={4}
               color={challenge.color}

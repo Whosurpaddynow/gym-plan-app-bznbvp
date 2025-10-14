@@ -4,13 +4,6 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { Achievement } from '@/types/gamification';
 import { colors } from '@/styles/commonStyles';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 interface AchievementBadgeProps {
@@ -24,21 +17,9 @@ export default function AchievementBadge({
   size = 'medium',
   onPress 
 }: AchievementBadgeProps) {
-  const scale = useSharedValue(1);
-  const opacity = useSharedValue(achievement.unlocked ? 1 : 0.4);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-    opacity: opacity.value,
-  }));
-
   const handlePress = () => {
     if (achievement.unlocked) {
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      scale.value = withSequence(
-        withSpring(0.95),
-        withSpring(1)
-      );
     }
     onPress?.();
   };
@@ -70,7 +51,11 @@ export default function AchievementBadge({
 
   return (
     <TouchableOpacity onPress={handlePress} disabled={!achievement.unlocked}>
-      <Animated.View style={[styles.container, sizeStyles.container, animatedStyle]}>
+      <View style={[
+        styles.container, 
+        sizeStyles.container, 
+        { opacity: achievement.unlocked ? 1 : 0.4 }
+      ]}>
         <View style={[styles.iconContainer, { backgroundColor: achievement.color }]}>
           <IconSymbol 
             name={achievement.icon as any} 
@@ -95,7 +80,7 @@ export default function AchievementBadge({
             <IconSymbol name="checkmark.circle.fill" size={16} color={colors.success} />
           </View>
         )}
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 }

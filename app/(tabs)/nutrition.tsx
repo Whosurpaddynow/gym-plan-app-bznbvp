@@ -12,11 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useGameification } from '@/hooks/useGameification';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-} from 'react-native-reanimated';
+
 import * as Haptics from 'expo-haptics';
 
 interface Recipe {
@@ -127,23 +123,14 @@ interface RecipeCardProps {
 }
 
 const RecipeCard = React.memo(({ recipe, onPress, getCategoryColor }: RecipeCardProps) => {
-  const scale = useSharedValue(1);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    scale.value = withSpring(0.98, {}, () => {
-      scale.value = withSpring(1);
-    });
     onPress(recipe);
   };
 
   return (
     <TouchableOpacity onPress={handlePress}>
-      <Animated.View style={[styles.recipeCard, animatedStyle]}>
+      <View style={styles.recipeCard}>
         <View style={styles.recipeHeader}>
           <View style={styles.recipeInfo}>
             <Text style={styles.recipeName}>{recipe.name}</Text>
@@ -191,7 +178,7 @@ const RecipeCard = React.memo(({ recipe, onPress, getCategoryColor }: RecipeCard
             <Text style={styles.macroLabelText}>F: {recipe.fat}g</Text>
           </View>
         </View>
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 });

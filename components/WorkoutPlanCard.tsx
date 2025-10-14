@@ -10,11 +10,6 @@ import {
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { WorkoutPlan } from '@/data/workoutPlans';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 interface WorkoutPlanCardProps {
@@ -24,16 +19,7 @@ interface WorkoutPlanCardProps {
 }
 
 const WorkoutPlanCard = ({ plan, onSelect, onPreview }: WorkoutPlanCardProps) => {
-  const scale = useSharedValue(1);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   const handlePress = () => {
-    scale.value = withSpring(0.95, {}, () => {
-      scale.value = withSpring(1);
-    });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     onPreview(plan);
   };
@@ -72,7 +58,7 @@ const WorkoutPlanCard = ({ plan, onSelect, onPreview }: WorkoutPlanCardProps) =>
   };
 
   return (
-    <Animated.View style={[styles.card, animatedStyle]}>
+    <View style={styles.card}>
       <TouchableOpacity onPress={handlePress} activeOpacity={0.9}>
         <View style={styles.header}>
           <View style={styles.titleRow}>
@@ -149,7 +135,7 @@ const WorkoutPlanCard = ({ plan, onSelect, onPreview }: WorkoutPlanCardProps) =>
           </TouchableOpacity>
         </View>
       </TouchableOpacity>
-    </Animated.View>
+    </View>
   );
 };
 

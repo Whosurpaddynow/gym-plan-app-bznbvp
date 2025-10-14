@@ -3,14 +3,6 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import Svg, { Circle } from 'react-native-svg';
 import { colors } from '@/styles/commonStyles';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedProps,
-  withTiming,
-  useDerivedValue,
-} from 'react-native-reanimated';
-
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 interface ProgressRingProps {
   progress: number; // 0 to 1
@@ -29,47 +21,41 @@ export default function ProgressRing({
   backgroundColor = colors.border,
   children,
 }: ProgressRingProps) {
-  const radius = (size - strokeWidth) / 2;
+  // Ensure all values are valid numbers
+  const safeProgress = Math.max(0, Math.min(1, progress || 0));
+  const safeSize = Math.max(20, size || 100);
+  const safeStrokeWidth = Math.max(1, strokeWidth || 8);
+  
+  const radius = (safeSize - safeStrokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
   
-  const animatedProgress = useSharedValue(0);
-  
-  React.useEffect(() => {
-    animatedProgress.value = withTiming(progress, { duration: 1000 });
-  }, [progress]);
-
-  const animatedProps = useAnimatedProps(() => {
-    const strokeDashoffset = circumference * (1 - animatedProgress.value);
-    return {
-      strokeDashoffset,
-    };
-  });
+  // Static calculation - no animation to avoid Reanimated issues
+  const strokeDashoffset = circumference * (1 - safeProgress);
 
   return (
-    <View style={[styles.container, { width: size, height: size }]}>
-      <Svg width={size} height={size} style={styles.svg}>
+    <View style={[styles.container, { width: safeSize, height: safeSize }]}>
+      <Svg width={safeSize} height={safeSize} style={styles.svg}>
         {/* Background circle */}
         <Circle
-          cx={size / 2}
-          cy={size / 2}
+          cx={safeSize / 2}
+          cy={safeSize / 2}
           r={radius}
-          stroke={backgroundColor}
-          strokeWidth={strokeWidth}
+          stroke={backgroundColor || colors.border}
+          strokeWidth={safeStrokeWidth}
           fill="transparent"
         />
         {/* Progress circle */}
-        <AnimatedCircle
-          cx={size / 2}
-          cy={size / 2}
+        <Circle
+          cx={safeSize / 2}
+          cy={safeSize / 2}
           r={radius}
-          stroke={color}
-          strokeWidth={strokeWidth}
+          stroke={color || colors.primary}
+          strokeWidth={safeStrokeWidth}
           fill="transparent"
-          strokeDasharray={circumference}
-          strokeDashoffset={circumference}
+          strokeDasharray={`${circumference} ${circumference}`}
+          strokeDashoffset={strokeDashoffset}
           strokeLinecap="round"
-          animatedProps={animatedProps}
-          transform={`rotate(-90 ${size / 2} ${size / 2})`}
+          transform={`rotate(-90 ${safeSize / 2} ${safeSize / 2})`}
         />
       </Svg>
       {children && (

@@ -17,6 +17,32 @@ import { StatusBar } from "expo-status-bar";
 import { Button } from "@/components/button";
 import { WidgetProvider } from "@/contexts/WidgetContext";
 
+// Error boundary for Reanimated errors
+class ReanimatedErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    console.log('ReanimatedErrorBoundary caught error:', error);
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.log('ReanimatedErrorBoundary error details:', error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      console.log('ReanimatedErrorBoundary rendering fallback UI');
+      return this.props.children; // Still render children but log the error
+    }
+
+    return this.props.children;
+  }
+}
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -80,6 +106,7 @@ export default function RootLayout() {
   return (
     <>
       <StatusBar style="auto" animated />
+      <ReanimatedErrorBoundary>
         <ThemeProvider
           value={colorScheme === "dark" ? CustomDarkTheme : CustomDefaultTheme}
         >
@@ -119,6 +146,7 @@ export default function RootLayout() {
             </GestureHandlerRootView>
           </WidgetProvider>
         </ThemeProvider>
+      </ReanimatedErrorBoundary>
     </>
   );
 }

@@ -12,11 +12,6 @@ import {
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
 import { WorkoutPlan } from '@/data/workoutPlans';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 interface WorkoutPlanPreviewProps {
@@ -28,7 +23,6 @@ interface WorkoutPlanPreviewProps {
 
 const WorkoutPlanPreview = ({ plan, visible, onClose, onSelect }: WorkoutPlanPreviewProps) => {
   const [selectedDay, setSelectedDay] = useState<string>('');
-  const scale = useSharedValue(1);
 
   React.useEffect(() => {
     if (plan && visible) {
@@ -37,16 +31,9 @@ const WorkoutPlanPreview = ({ plan, visible, onClose, onSelect }: WorkoutPlanPre
     }
   }, [plan, visible]);
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   if (!plan) return null;
 
   const handleSelect = () => {
-    scale.value = withSpring(0.95, {}, () => {
-      scale.value = withSpring(1);
-    });
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     onSelect(plan);
     onClose();
@@ -238,12 +225,12 @@ const WorkoutPlanPreview = ({ plan, visible, onClose, onSelect }: WorkoutPlanPre
         </ScrollView>
 
         {/* Select Button */}
-        <Animated.View style={[styles.selectContainer, animatedStyle]}>
+        <View style={styles.selectContainer}>
           <TouchableOpacity style={styles.selectButton} onPress={handleSelect}>
             <IconSymbol name="plus.circle.fill" size={20} color={colors.card} />
             <Text style={styles.selectButtonText}>Select This Plan</Text>
           </TouchableOpacity>
-        </Animated.View>
+        </View>
       </SafeAreaView>
     </Modal>
   );

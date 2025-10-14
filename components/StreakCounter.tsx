@@ -3,13 +3,6 @@ import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors } from '@/styles/commonStyles';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-  withSequence,
-  withDelay,
-} from 'react-native-reanimated';
 
 interface StreakCounterProps {
   currentStreak: number;
@@ -18,44 +11,27 @@ interface StreakCounterProps {
 }
 
 export default function StreakCounter({ 
-  currentStreak, 
-  longestStreak, 
+  currentStreak = 0, 
+  longestStreak = 0, 
   streakDates = [] 
 }: StreakCounterProps) {
-  const flameScale = useSharedValue(1);
-  const flameOpacity = useSharedValue(1);
-
-  React.useEffect(() => {
-    // Animate flame when streak updates
-    flameScale.value = withSequence(
-      withSpring(1.2),
-      withSpring(1)
-    );
-    flameOpacity.value = withSequence(
-      withSpring(0.7),
-      withSpring(1)
-    );
-  }, [currentStreak, flameScale, flameOpacity]);
-
-  const flameAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: flameScale.value }],
-    opacity: flameOpacity.value,
-  }));
 
   const getStreakColor = () => {
-    if (currentStreak >= 30) return '#FFD700'; // Gold
-    if (currentStreak >= 14) return colors.accent; // Orange
-    if (currentStreak >= 7) return colors.error; // Red
-    if (currentStreak >= 3) return colors.secondary; // Green
+    const streak = currentStreak || 0;
+    if (streak >= 30) return '#FFD700'; // Gold
+    if (streak >= 14) return colors.accent; // Orange
+    if (streak >= 7) return colors.error; // Red
+    if (streak >= 3) return colors.secondary; // Green
     return colors.primary; // Blue
   };
 
   const getStreakMessage = () => {
-    if (currentStreak === 0) return 'Start your streak today!';
-    if (currentStreak === 1) return 'Great start! Keep it up!';
-    if (currentStreak < 7) return 'Building momentum!';
-    if (currentStreak < 14) return 'You\'re on fire!';
-    if (currentStreak < 30) return 'Incredible dedication!';
+    const streak = currentStreak || 0;
+    if (streak === 0) return 'Start your streak today!';
+    if (streak === 1) return 'Great start! Keep it up!';
+    if (streak < 7) return 'Building momentum!';
+    if (streak < 14) return 'You\'re on fire!';
+    if (streak < 30) return 'Incredible dedication!';
     return 'Legendary streak!';
   };
 
@@ -90,15 +66,15 @@ export default function StreakCounter({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Animated.View style={flameAnimatedStyle}>
+        <View>
           <IconSymbol 
             name="flame.fill" 
             size={32} 
             color={getStreakColor()} 
           />
-        </Animated.View>
+        </View>
         <View style={styles.streakInfo}>
-          <Text style={styles.streakNumber}>{currentStreak}</Text>
+          <Text style={styles.streakNumber}>{currentStreak || 0}</Text>
           <Text style={styles.streakLabel}>Day Streak</Text>
         </View>
       </View>
@@ -109,11 +85,11 @@ export default function StreakCounter({
 
       <View style={styles.stats}>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{longestStreak}</Text>
+          <Text style={styles.statValue}>{longestStreak || 0}</Text>
           <Text style={styles.statLabel}>Best Streak</Text>
         </View>
         <View style={styles.statItem}>
-          <Text style={styles.statValue}>{streakDates.length}</Text>
+          <Text style={styles.statValue}>{streakDates?.length || 0}</Text>
           <Text style={styles.statLabel}>Total Workouts</Text>
         </View>
       </View>

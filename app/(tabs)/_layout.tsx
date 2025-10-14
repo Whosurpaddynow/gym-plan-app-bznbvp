@@ -10,33 +10,33 @@ export default function TabLayout() {
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
-      title: 'Home',
-      icon: 'house.fill',
       route: '/(tabs)/(home)',
+      icon: 'house.fill',
+      label: 'Home',
     },
     {
       name: 'workout',
-      title: 'Workout',
-      icon: 'dumbbell',
       route: '/(tabs)/workout',
+      icon: 'dumbbell',
+      label: 'Workout',
     },
     {
       name: 'nutrition',
-      title: 'Nutrition',
-      icon: 'leaf.fill',
       route: '/(tabs)/nutrition',
+      icon: 'leaf.fill',
+      label: 'Nutrition',
     },
     {
       name: 'achievements',
-      title: 'Achievements',
-      icon: 'trophy.fill',
       route: '/(tabs)/achievements',
+      icon: 'trophy.fill',
+      label: 'Achievements',
     },
     {
       name: 'profile',
-      title: 'Profile',
-      icon: 'person.fill',
       route: '/(tabs)/profile',
+      icon: 'person.fill',
+      label: 'Profile',
     },
   ];
 

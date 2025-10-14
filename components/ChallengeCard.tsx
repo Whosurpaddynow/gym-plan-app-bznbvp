@@ -5,11 +5,6 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { Challenge } from '@/types/gamification';
 import { colors } from '@/styles/commonStyles';
 import ProgressRing from './ProgressRing';
-import Animated, { 
-  useSharedValue, 
-  useAnimatedStyle, 
-  withSpring,
-} from 'react-native-reanimated';
 import * as Haptics from 'expo-haptics';
 
 interface ChallengeCardProps {
@@ -18,24 +13,17 @@ interface ChallengeCardProps {
 }
 
 export default function ChallengeCard({ challenge, onPress }: ChallengeCardProps) {
-  const scale = useSharedValue(1);
-  
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    scale.value = withSpring(0.98, {}, () => {
-      scale.value = withSpring(1);
-    });
     onPress?.();
   };
 
-  const progress = challenge.progress.current / challenge.progress.target;
+  const progress = Math.max(0, Math.min(1, (challenge.progress?.current || 0) / (challenge.progress?.target || 1)));
   const progressPercentage = Math.round(progress * 100);
 
   const getTimeRemaining = () => {
+    if (!challenge.endDate) return 'No deadline';
+    
     const now = new Date();
     const timeLeft = challenge.endDate.getTime() - now.getTime();
     const hoursLeft = Math.floor(timeLeft / (1000 * 60 * 60));
@@ -51,17 +39,19 @@ export default function ChallengeCard({ challenge, onPress }: ChallengeCardProps
   };
 
   const getRewardText = () => {
+    if (!challenge.reward) return 'Reward';
+    
     if (challenge.reward.type === 'xp') {
-      return `+${challenge.reward.value} XP`;
+      return `+${challenge.reward.value || 0} XP`;
     } else if (challenge.reward.type === 'badge') {
-      return `Badge: ${challenge.reward.value}`;
+      return `Badge: ${challenge.reward.value || 'Unknown'}`;
     }
     return 'Reward';
   };
 
   return (
     <TouchableOpacity onPress={handlePress}>
-      <Animated.View style={[styles.container, animatedStyle]}>
+      <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.titleContainer}>
             <View style={[styles.iconContainer, { backgroundColor: challenge.color }]}>
@@ -91,7 +81,7 @@ export default function ChallengeCard({ challenge, onPress }: ChallengeCardProps
           
           <View style={styles.progressDetails}>
             <Text style={styles.progressLabel}>
-              {challenge.progress.current} / {challenge.progress.target}
+              {challenge.progress?.current || 0} / {challenge.progress?.target || 1}
             </Text>
             <Text style={styles.timeRemaining}>{getTimeRemaining()}</Text>
           </View>
@@ -110,7 +100,7 @@ export default function ChallengeCard({ challenge, onPress }: ChallengeCardProps
             </View>
           )}
         </View>
-      </Animated.View>
+      </View>
     </TouchableOpacity>
   );
 }
