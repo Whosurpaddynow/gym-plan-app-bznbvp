@@ -1,3 +1,4 @@
+
 // https://docs.expo.dev/guides/using-eslint/
 module.exports = {
   extends: [
@@ -17,7 +18,7 @@ module.exports = {
       jsx: true
     }
   },
-  ignorePatterns: ['/dist/*', '/public/*', '/babel-plugins/*'],
+  ignorePatterns: ['/dist/*', '/public/*', '/babel-plugins/*', 'babel.config.js', 'metro.config.js'],
   env: {
     browser: true,
   },
@@ -39,7 +40,7 @@ module.exports = {
   },
   overrides: [
     {
-      files: ['metro.config.js'],
+      files: ['metro.config.js', 'babel.config.js'],
       rules: {
         '@typescript-eslint/no-var-requires': 'off'
       }
