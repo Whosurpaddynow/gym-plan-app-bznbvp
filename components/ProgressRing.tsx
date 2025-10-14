@@ -36,7 +36,7 @@ export default function ProgressRing({
   
   React.useEffect(() => {
     animatedProgress.value = withTiming(progress, { duration: 1000 });
-  }, [progress, animatedProgress]);
+  }, [progress]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeDashoffset = circumference * (1 - animatedProgress.value);
@@ -66,6 +66,7 @@ export default function ProgressRing({
           strokeWidth={strokeWidth}
           fill="transparent"
           strokeDasharray={circumference}
+          strokeDashoffset={circumference}
           strokeLinecap="round"
           animatedProps={animatedProps}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
