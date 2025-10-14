@@ -1,3 +1,4 @@
+
 {
   "name": "Natively",
   "version": "1.0.0",
@@ -80,4 +81,4 @@
     "@expo/prebuild-config": "latest"
   },
   "private": true
-};
+}
