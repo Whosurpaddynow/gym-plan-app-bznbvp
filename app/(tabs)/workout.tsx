@@ -13,6 +13,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles } from '@/styles/commonStyles';
+import { useGameification } from '@/hooks/useGameification';
+import ProgressRing from '@/components/ProgressRing';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  withSequence,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 interface Exercise {
   id: string;
@@ -21,6 +30,7 @@ interface Exercise {
   reps: string;
   weight?: string;
   notes?: string;
+  completed?: boolean;
 }
 
 interface WorkoutDay {
@@ -31,21 +41,77 @@ interface WorkoutDay {
 const DAYS_OF_WEEK = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
 
 const EXERCISE_LIBRARY = [
-  'Bench Press', 'Squats', 'Deadlifts', 'Pull-ups', 'Push-ups', 'Overhead Press',
-  'Barbell Rows', 'Dumbbell Curls', 'Tricep Dips', 'Lunges', 'Lat Pulldowns',
-  'Leg Press', 'Shoulder Press', 'Chest Flyes', 'Leg Curls', 'Calf Raises',
-  'Planks', 'Russian Twists', 'Mountain Climbers', 'Burpees'
+  'Bench Press', 'Squats', 'Deadlifts', 'Pull-ups', 'Push-ups', 'Shoulder Press',
+  'Barbell Rows', 'Dips', 'Lunges', 'Bicep Curls', 'Tricep Extensions', 'Planks',
+  'Lat Pulldowns', 'Leg Press', 'Calf Raises', 'Russian Twists', 'Burpees', 'Mountain Climbers'
 ];
 
 export default function WorkoutScreen() {
+  const { completeWorkout, addXp } = useGameification();
   const [selectedDay, setSelectedDay] = useState('Monday');
-  const [workoutPlan, setWorkoutPlan] = useState<WorkoutDay[]>(
-    DAYS_OF_WEEK.map(day => ({ day, exercises: [] }))
-  );
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+  const [workoutStarted, setWorkoutStarted] = useState(false);
+  const [workoutTimer, setWorkoutTimer] = useState(0);
+  
+  const [workoutPlan, setWorkoutPlan] = useState<WorkoutDay[]>([
+    {
+      day: 'Monday',
+      exercises: [
+        { id: '1', name: 'Bench Press', sets: 3, reps: '8-10', weight: '135 lbs', completed: false },
+        { id: '2', name: 'Pull-ups', sets: 3, reps: '6-8', completed: false },
+        { id: '3', name: 'Shoulder Press', sets: 3, reps: '10-12', weight: '65 lbs', completed: false },
+      ]
+    },
+    {
+      day: 'Tuesday',
+      exercises: [
+        { id: '4', name: 'Squats', sets: 4, reps: '8-10', weight: '185 lbs', completed: false },
+        { id: '5', name: 'Deadlifts', sets: 3, reps: '5-6', weight: '225 lbs', completed: false },
+        { id: '6', name: 'Lunges', sets: 3, reps: '12 each leg', completed: false },
+      ]
+    },
+    {
+      day: 'Wednesday',
+      exercises: []
+    },
+    {
+      day: 'Thursday',
+      exercises: [
+        { id: '7', name: 'Dips', sets: 3, reps: '8-12', completed: false },
+        { id: '8', name: 'Bicep Curls', sets: 3, reps: '10-12', weight: '30 lbs', completed: false },
+        { id: '9', name: 'Tricep Extensions', sets: 3, reps: '10-12', weight: '25 lbs', completed: false },
+      ]
+    },
+    {
+      day: 'Friday',
+      exercises: []
+    },
+    {
+      day: 'Saturday',
+      exercises: [
+        { id: '10', name: 'Planks', sets: 3, reps: '60 seconds', completed: false },
+        { id: '11', name: 'Russian Twists', sets: 3, reps: '20 each side', completed: false },
+        { id: '12', name: 'Burpees', sets: 3, reps: '10', completed: false },
+      ]
+    },
+    {
+      day: 'Sunday',
+      exercises: []
+    },
+  ]);
+
+  React.useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (workoutStarted) {
+      interval = setInterval(() => {
+        setWorkoutTimer(prev => prev + 1);
+      }, 1000);
+    }
+    return () => clearInterval(interval);
+  }, [workoutStarted]);
 
   const getCurrentDayWorkout = () => {
-    return workoutPlan.find(workout => workout.day === selectedDay) || { day: selectedDay, exercises: [] };
+    return workoutPlan.find(day => day.day === selectedDay) || { day: selectedDay, exercises: [] };
   };
 
   const addExercise = (exerciseName: string) => {
@@ -53,78 +119,257 @@ export default function WorkoutScreen() {
       id: Date.now().toString(),
       name: exerciseName,
       sets: 3,
-      reps: '8-12',
-      weight: '',
-      notes: '',
+      reps: '8-10',
+      completed: false,
     };
 
-    setWorkoutPlan(prev => 
-      prev.map(workout => 
-        workout.day === selectedDay 
-          ? { ...workout, exercises: [...workout.exercises, newExercise] }
-          : workout
-      )
-    );
+    setWorkoutPlan(prev => prev.map(day => 
+      day.day === selectedDay 
+        ? { ...day, exercises: [...day.exercises, newExercise] }
+        : day
+    ));
+    
     setShowExerciseLibrary(false);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
   };
 
   const removeExercise = (exerciseId: string) => {
-    setWorkoutPlan(prev => 
-      prev.map(workout => 
-        workout.day === selectedDay 
-          ? { ...workout, exercises: workout.exercises.filter(ex => ex.id !== exerciseId) }
-          : workout
-      )
+    setWorkoutPlan(prev => prev.map(day => 
+      day.day === selectedDay 
+        ? { ...day, exercises: day.exercises.filter(ex => ex.id !== exerciseId) }
+        : day
+    ));
+  };
+
+  const updateExercise = (exerciseId: string, field: keyof Exercise, value: string | number | boolean) => {
+    setWorkoutPlan(prev => prev.map(day => 
+      day.day === selectedDay 
+        ? { 
+            ...day, 
+            exercises: day.exercises.map(ex => 
+              ex.id === exerciseId ? { ...ex, [field]: value } : ex
+            )
+          }
+        : day
+    ));
+
+    if (field === 'completed' && value === true) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      addXp(25); // Award XP for completing an exercise
+    }
+  };
+
+  const startWorkout = () => {
+    setWorkoutStarted(true);
+    setWorkoutTimer(0);
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+  };
+
+  const finishWorkout = () => {
+    const currentWorkout = getCurrentDayWorkout();
+    const completedExercises = currentWorkout.exercises.filter(ex => ex.completed).length;
+    const totalExercises = currentWorkout.exercises.length;
+    
+    if (completedExercises === 0) {
+      Alert.alert('No exercises completed', 'Complete at least one exercise to finish your workout.');
+      return;
+    }
+
+    const result = completeWorkout();
+    setWorkoutStarted(false);
+    
+    Alert.alert(
+      'Workout Complete! 🎉',
+      `Great job! You completed ${completedExercises}/${totalExercises} exercises in ${Math.floor(workoutTimer / 60)}:${(workoutTimer % 60).toString().padStart(2, '0')}.\n\n${result.leveledUp ? `🎊 Level Up! You're now level ${result.newStreak}!` : ''}🔥 Streak: ${result.newStreak} days`,
+      [{ text: 'Awesome!', style: 'default' }]
     );
   };
 
-  const updateExercise = (exerciseId: string, field: keyof Exercise, value: string | number) => {
-    setWorkoutPlan(prev => 
-      prev.map(workout => 
-        workout.day === selectedDay 
-          ? {
-              ...workout,
-              exercises: workout.exercises.map(ex => 
-                ex.id === exerciseId ? { ...ex, [field]: value } : ex
-              )
-            }
-          : workout
-      )
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const renderWorkoutHeader = () => {
+    const currentWorkout = getCurrentDayWorkout();
+    const completedExercises = currentWorkout.exercises.filter(ex => ex.completed).length;
+    const totalExercises = currentWorkout.exercises.length;
+    const progress = totalExercises > 0 ? completedExercises / totalExercises : 0;
+
+    return (
+      <View style={styles.workoutHeader}>
+        <View style={styles.workoutInfo}>
+          <Text style={styles.workoutTitle}>{selectedDay} Workout</Text>
+          <Text style={styles.workoutSubtitle}>
+            {completedExercises} of {totalExercises} exercises completed
+          </Text>
+        </View>
+        
+        <View style={styles.workoutControls}>
+          {workoutStarted ? (
+            <View style={styles.timerContainer}>
+              <Text style={styles.timerText}>{formatTime(workoutTimer)}</Text>
+              <TouchableOpacity 
+                style={styles.finishButton}
+                onPress={finishWorkout}
+              >
+                <IconSymbol name="checkmark.circle.fill" size={20} color={colors.card} />
+                <Text style={styles.finishButtonText}>Finish</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <TouchableOpacity 
+              style={styles.startWorkoutButton}
+              onPress={startWorkout}
+              disabled={totalExercises === 0}
+            >
+              <IconSymbol name="play.fill" size={20} color={colors.card} />
+              <Text style={styles.startWorkoutButtonText}>Start Workout</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+
+        {totalExercises > 0 && (
+          <View style={styles.progressContainer}>
+            <ProgressRing
+              progress={progress}
+              size={60}
+              strokeWidth={6}
+              color={colors.primary}
+            >
+              <Text style={styles.progressText}>{Math.round(progress * 100)}%</Text>
+            </ProgressRing>
+          </View>
+        )}
+      </View>
     );
   };
 
   const renderDaySelector = () => (
     <View style={styles.daySelector}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {DAYS_OF_WEEK.map(day => (
-          <TouchableOpacity
-            key={day}
-            style={[
-              styles.dayButton,
-              selectedDay === day && styles.selectedDayButton
-            ]}
-            onPress={() => setSelectedDay(day)}
-          >
-            <Text style={[
-              styles.dayButtonText,
-              selectedDay === day && styles.selectedDayButtonText
-            ]}>
-              {day.substring(0, 3)}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.dayButtons}>
+          {DAYS_OF_WEEK.map(day => (
+            <TouchableOpacity
+              key={day}
+              style={[
+                styles.dayButton,
+                selectedDay === day && styles.selectedDayButton
+              ]}
+              onPress={() => setSelectedDay(day)}
+            >
+              <Text style={[
+                styles.dayButtonText,
+                selectedDay === day && styles.selectedDayButtonText
+              ]}>
+                {day.slice(0, 3)}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
+
+  const renderExercise = (exercise: Exercise) => {
+    const scale = useSharedValue(1);
+    
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+    }));
+
+    const handleComplete = () => {
+      scale.value = withSequence(
+        withSpring(0.95),
+        withSpring(1)
+      );
+      updateExercise(exercise.id, 'completed', !exercise.completed);
+    };
+
+    return (
+      <Animated.View key={exercise.id} style={[styles.exerciseCard, animatedStyle]}>
+        <View style={styles.exerciseHeader}>
+          <TouchableOpacity
+            style={[
+              styles.completeButton,
+              exercise.completed && styles.completedButton
+            ]}
+            onPress={handleComplete}
+          >
+            <IconSymbol 
+              name={exercise.completed ? "checkmark.circle.fill" : "circle"} 
+              size={24} 
+              color={exercise.completed ? colors.success : colors.textSecondary} 
+            />
+          </TouchableOpacity>
+          
+          <View style={styles.exerciseInfo}>
+            <Text style={[
+              styles.exerciseName,
+              exercise.completed && styles.completedText
+            ]}>
+              {exercise.name}
+            </Text>
+            <Text style={styles.exerciseDetails}>
+              {exercise.sets} sets × {exercise.reps}
+              {exercise.weight && ` @ ${exercise.weight}`}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.removeButton}
+            onPress={() => removeExercise(exercise.id)}
+          >
+            <IconSymbol name="trash" size={20} color={colors.error} />
+          </TouchableOpacity>
+        </View>
+
+        {!exercise.completed && (
+          <View style={styles.exerciseInputs}>
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Sets</Text>
+              <TextInput
+                style={styles.input}
+                value={exercise.sets.toString()}
+                onChangeText={(text) => updateExercise(exercise.id, 'sets', parseInt(text) || 0)}
+                keyboardType="numeric"
+              />
+            </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Reps</Text>
+              <TextInput
+                style={styles.input}
+                value={exercise.reps}
+                onChangeText={(text) => updateExercise(exercise.id, 'reps', text)}
+              />
+            </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Weight</Text>
+              <TextInput
+                style={styles.input}
+                value={exercise.weight || ''}
+                onChangeText={(text) => updateExercise(exercise.id, 'weight', text)}
+                placeholder="Optional"
+              />
+            </View>
+          </View>
+        )}
+      </Animated.View>
+    );
+  };
 
   const renderExerciseLibrary = () => (
     <View style={styles.exerciseLibrary}>
       <View style={styles.libraryHeader}>
         <Text style={styles.libraryTitle}>Exercise Library</Text>
         <TouchableOpacity onPress={() => setShowExerciseLibrary(false)}>
-          <IconSymbol name="xmark" size={24} color={colors.text} />
+          <IconSymbol name="xmark" size={24} color={colors.textSecondary} />
         </TouchableOpacity>
       </View>
+      
       <ScrollView style={styles.libraryList}>
         {EXERCISE_LIBRARY.map(exercise => (
           <TouchableOpacity
@@ -132,63 +377,11 @@ export default function WorkoutScreen() {
             style={styles.libraryItem}
             onPress={() => addExercise(exercise)}
           >
+            <IconSymbol name="plus.circle" size={20} color={colors.primary} />
             <Text style={styles.libraryItemText}>{exercise}</Text>
-            <IconSymbol name="plus" size={20} color={colors.primary} />
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </View>
-  );
-
-  const renderExercise = (exercise: Exercise) => (
-    <View key={exercise.id} style={styles.exerciseCard}>
-      <View style={styles.exerciseHeader}>
-        <Text style={styles.exerciseName}>{exercise.name}</Text>
-        <TouchableOpacity onPress={() => removeExercise(exercise.id)}>
-          <IconSymbol name="trash" size={20} color={colors.error} />
-        </TouchableOpacity>
-      </View>
-      
-      <View style={styles.exerciseDetails}>
-        <View style={styles.exerciseInput}>
-          <Text style={styles.inputLabel}>Sets</Text>
-          <TextInput
-            style={styles.smallInput}
-            value={exercise.sets.toString()}
-            onChangeText={(text) => updateExercise(exercise.id, 'sets', parseInt(text) || 0)}
-            keyboardType="numeric"
-            placeholder="3"
-          />
-        </View>
-        
-        <View style={styles.exerciseInput}>
-          <Text style={styles.inputLabel}>Reps</Text>
-          <TextInput
-            style={styles.smallInput}
-            value={exercise.reps}
-            onChangeText={(text) => updateExercise(exercise.id, 'reps', text)}
-            placeholder="8-12"
-          />
-        </View>
-        
-        <View style={styles.exerciseInput}>
-          <Text style={styles.inputLabel}>Weight</Text>
-          <TextInput
-            style={styles.smallInput}
-            value={exercise.weight}
-            onChangeText={(text) => updateExercise(exercise.id, 'weight', text)}
-            placeholder="lbs/kg"
-          />
-        </View>
-      </View>
-      
-      <TextInput
-        style={styles.notesInput}
-        value={exercise.notes}
-        onChangeText={(text) => updateExercise(exercise.id, 'notes', text)}
-        placeholder="Notes (optional)"
-        multiline
-      />
     </View>
   );
 
@@ -196,61 +389,137 @@ export default function WorkoutScreen() {
 
   return (
     <SafeAreaView style={[commonStyles.container]} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={commonStyles.title}>Workout Planner</Text>
-        <Text style={commonStyles.textSecondary}>Plan your weekly workout schedule</Text>
-      </View>
-
-      {renderDaySelector()}
-
       <ScrollView 
-        style={styles.content}
+        style={styles.container}
         contentContainerStyle={[
           styles.scrollContent,
           Platform.OS !== 'ios' && styles.scrollContentWithTabBar
         ]}
       >
-        <View style={styles.workoutHeader}>
-          <Text style={styles.workoutTitle}>{selectedDay} Workout</Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => setShowExerciseLibrary(true)}
-          >
-            <IconSymbol name="plus" size={20} color={colors.card} />
-            <Text style={styles.addButtonText}>Add Exercise</Text>
-          </TouchableOpacity>
+        {renderWorkoutHeader()}
+        {renderDaySelector()}
+
+        <View style={styles.exercisesContainer}>
+          <View style={styles.exercisesHeader}>
+            <Text style={styles.sectionTitle}>Exercises</Text>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => setShowExerciseLibrary(true)}
+            >
+              <IconSymbol name="plus" size={20} color={colors.card} />
+              <Text style={styles.addButtonText}>Add Exercise</Text>
+            </TouchableOpacity>
+          </View>
+
+          {currentWorkout.exercises.length === 0 ? (
+            <View style={styles.emptyState}>
+              <IconSymbol name="dumbbell" size={48} color={colors.textSecondary} />
+              <Text style={styles.emptyStateText}>No exercises planned</Text>
+              <Text style={styles.emptyStateSubtext}>Add exercises to get started!</Text>
+            </View>
+          ) : (
+            currentWorkout.exercises.map(renderExercise)
+          )}
         </View>
 
-        {currentWorkout.exercises.length === 0 ? (
-          <View style={styles.emptyState}>
-            <IconSymbol name="dumbbell" size={48} color={colors.textSecondary} />
-            <Text style={styles.emptyStateText}>No exercises planned for {selectedDay}</Text>
-            <Text style={styles.emptyStateSubtext}>Tap "Add Exercise" to get started</Text>
-          </View>
-        ) : (
-          currentWorkout.exercises.map(renderExercise)
-        )}
+        {showExerciseLibrary && renderExerciseLibrary()}
       </ScrollView>
-
-      {showExerciseLibrary && renderExerciseLibrary()}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+  },
+  scrollContentWithTabBar: {
+    paddingBottom: 100,
+  },
+  workoutHeader: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  workoutInfo: {
+    marginBottom: 16,
+  },
+  workoutTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 4,
+  },
+  workoutSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  workoutControls: {
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  startWorkoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 25,
+  },
+  startWorkoutButtonText: {
+    color: colors.card,
+    fontWeight: '700',
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  timerContainer: {
     alignItems: 'center',
   },
-  daySelector: {
+  timerText: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.primary,
+    marginBottom: 12,
+  },
+  finishButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.success,
     paddingHorizontal: 20,
-    marginBottom: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  finishButtonText: {
+    color: colors.card,
+    fontWeight: '600',
+    marginLeft: 6,
+  },
+  progressContainer: {
+    alignItems: 'center',
+  },
+  progressText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  daySelector: {
+    marginBottom: 20,
+  },
+  dayButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 4,
   },
   dayButton: {
     paddingHorizontal: 16,
     paddingVertical: 8,
-    marginRight: 8,
     borderRadius: 20,
     backgroundColor: colors.card,
     borderWidth: 1,
@@ -268,22 +537,16 @@ const styles = StyleSheet.create({
   selectedDayButtonText: {
     color: colors.card,
   },
-  content: {
+  exercisesContainer: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
-  scrollContentWithTabBar: {
-    paddingBottom: 100,
-  },
-  workoutHeader: {
+  exercisesHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 16,
   },
-  workoutTitle: {
+  sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
     color: colors.text,
@@ -291,39 +554,62 @@ const styles = StyleSheet.create({
   addButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.primary,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
   },
   addButtonText: {
     color: colors.card,
     fontWeight: '600',
+    fontSize: 14,
     marginLeft: 4,
   },
   exerciseCard: {
-    ...commonStyles.card,
-    marginBottom: 16,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   exerciseHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
+  completeButton: {
+    marginRight: 12,
+  },
+  completedButton: {
+    // Additional styles for completed state if needed
+  },
+  exerciseInfo: {
+    flex: 1,
+  },
   exerciseName: {
-    fontSize: 18,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: '700',
     color: colors.text,
+    marginBottom: 2,
+  },
+  completedText: {
+    textDecorationLine: 'line-through',
+    color: colors.textSecondary,
   },
   exerciseDetails: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    fontSize: 14,
+    color: colors.textSecondary,
   },
-  exerciseInput: {
+  removeButton: {
+    padding: 4,
+  },
+  exerciseInputs: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  inputGroup: {
     flex: 1,
-    marginRight: 8,
   },
   inputLabel: {
     fontSize: 12,
@@ -331,24 +617,24 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginBottom: 4,
   },
-  smallInput: {
-    ...commonStyles.input,
-    marginBottom: 0,
-    textAlign: 'center',
-  },
-  notesInput: {
-    ...commonStyles.input,
-    marginBottom: 0,
-    minHeight: 40,
+  input: {
+    backgroundColor: colors.background,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    fontSize: 14,
+    color: colors.text,
   },
   emptyState: {
     alignItems: 'center',
-    paddingVertical: 40,
+    padding: 40,
   },
   emptyStateText: {
     fontSize: 18,
     fontWeight: '600',
-    color: colors.textSecondary,
+    color: colors.text,
     marginTop: 16,
     marginBottom: 8,
   },
@@ -370,8 +656,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    padding: 20,
     borderBottomWidth: 1,
     borderBottomColor: colors.border,
   },
@@ -382,18 +667,21 @@ const styles = StyleSheet.create({
   },
   libraryList: {
     flex: 1,
-    paddingHorizontal: 20,
+    padding: 20,
   },
   libraryItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
+    padding: 16,
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
   },
   libraryItemText: {
     fontSize: 16,
     color: colors.text,
+    marginLeft: 12,
   },
 });

@@ -11,6 +11,13 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles } from '@/styles/commonStyles';
+import { useGameification } from '@/hooks/useGameification';
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 interface Recipe {
   id: string;
@@ -25,35 +32,24 @@ interface Recipe {
   ingredients: string[];
   instructions: string[];
   difficulty: 'Easy' | 'Medium' | 'Hard';
+  logged?: boolean;
 }
 
 const SAMPLE_RECIPES: Recipe[] = [
   {
     id: '1',
-    name: 'Grilled Chicken & Vegetables',
+    name: 'Grilled Chicken Salad',
     category: 'weight-loss',
-    calories: 320,
+    calories: 350,
     protein: 35,
     carbs: 15,
-    fat: 12,
-    cookTime: 25,
-    cost: 4.50,
+    fat: 18,
+    cookTime: 20,
+    cost: 8,
     difficulty: 'Easy',
-    ingredients: [
-      '6oz chicken breast',
-      '1 cup broccoli',
-      '1 cup bell peppers',
-      '1 tbsp olive oil',
-      'Salt and pepper',
-      'Garlic powder'
-    ],
-    instructions: [
-      'Season chicken with salt, pepper, and garlic powder',
-      'Heat olive oil in a pan over medium-high heat',
-      'Cook chicken for 6-7 minutes per side until done',
-      'Steam vegetables for 5-7 minutes',
-      'Serve hot'
-    ]
+    ingredients: ['Chicken breast', 'Mixed greens', 'Cherry tomatoes', 'Cucumber', 'Olive oil', 'Lemon'],
+    instructions: ['Season and grill chicken', 'Chop vegetables', 'Mix salad', 'Add dressing'],
+    logged: false,
   },
   {
     id: '2',
@@ -62,206 +58,248 @@ const SAMPLE_RECIPES: Recipe[] = [
     calories: 650,
     protein: 45,
     carbs: 55,
-    fat: 22,
-    cookTime: 20,
-    cost: 6.00,
-    difficulty: 'Easy',
-    ingredients: [
-      '1 cup quinoa',
-      '6oz lean ground turkey',
-      '1/2 avocado',
-      '1 cup black beans',
-      '1/4 cup Greek yogurt',
-      'Mixed greens',
-      'Hot sauce'
-    ],
-    instructions: [
-      'Cook quinoa according to package directions',
-      'Brown ground turkey in a pan with seasonings',
-      'Warm black beans',
-      'Assemble bowl with quinoa as base',
-      'Top with turkey, beans, avocado, and yogurt',
-      'Add greens and hot sauce to taste'
-    ]
+    fat: 25,
+    cookTime: 25,
+    cost: 12,
+    difficulty: 'Medium',
+    ingredients: ['Quinoa', 'Lean beef', 'Sweet potato', 'Broccoli', 'Avocado', 'Greek yogurt'],
+    instructions: ['Cook quinoa', 'Grill beef', 'Roast sweet potato', 'Steam broccoli', 'Assemble bowl'],
+    logged: false,
   },
   {
     id: '3',
-    name: 'Overnight Protein Oats',
-    category: 'muscle-gain',
-    calories: 420,
-    protein: 28,
+    name: 'Balanced Buddha Bowl',
+    category: 'maintenance',
+    calories: 480,
+    protein: 22,
     carbs: 45,
-    fat: 12,
-    cookTime: 5,
-    cost: 2.50,
-    difficulty: 'Easy',
-    ingredients: [
-      '1/2 cup rolled oats',
-      '1 scoop protein powder',
-      '1 tbsp chia seeds',
-      '1 cup almond milk',
-      '1 tbsp almond butter',
-      '1/2 banana',
-      'Cinnamon'
-    ],
-    instructions: [
-      'Mix oats, protein powder, and chia seeds in a jar',
-      'Add almond milk and stir well',
-      'Add almond butter and mashed banana',
-      'Sprinkle with cinnamon',
-      'Refrigerate overnight',
-      'Enjoy cold in the morning'
-    ]
+    fat: 24,
+    cookTime: 30,
+    cost: 10,
+    difficulty: 'Medium',
+    ingredients: ['Brown rice', 'Chickpeas', 'Roasted vegetables', 'Tahini', 'Spinach'],
+    instructions: ['Cook rice', 'Roast chickpeas and vegetables', 'Make tahini dressing', 'Assemble bowl'],
+    logged: false,
   },
   {
     id: '4',
-    name: 'Zucchini Noodle Stir-Fry',
+    name: 'Green Smoothie',
     category: 'weight-loss',
-    calories: 280,
-    protein: 22,
-    carbs: 18,
-    fat: 14,
-    cookTime: 15,
-    cost: 3.75,
+    calories: 220,
+    protein: 15,
+    carbs: 35,
+    fat: 8,
+    cookTime: 5,
+    cost: 6,
     difficulty: 'Easy',
-    ingredients: [
-      '2 large zucchini, spiralized',
-      '4oz shrimp',
-      '1 cup snap peas',
-      '1 bell pepper',
-      '2 tbsp coconut oil',
-      'Ginger and garlic',
-      'Soy sauce'
-    ],
-    instructions: [
-      'Spiralize zucchini into noodles',
-      'Heat coconut oil in a wok',
-      'Stir-fry shrimp until pink',
-      'Add vegetables and cook for 3-4 minutes',
-      'Add zucchini noodles and toss for 2 minutes',
-      'Season with soy sauce and serve'
-    ]
+    ingredients: ['Spinach', 'Banana', 'Protein powder', 'Almond milk', 'Chia seeds'],
+    instructions: ['Add all ingredients to blender', 'Blend until smooth', 'Serve immediately'],
+    logged: false,
   },
   {
     id: '5',
-    name: 'Sweet Potato & Black Bean Bowl',
-    category: 'maintenance',
-    calories: 480,
-    protein: 18,
-    carbs: 72,
-    fat: 16,
-    cookTime: 30,
-    cost: 3.25,
+    name: 'Post-Workout Wrap',
+    category: 'muscle-gain',
+    calories: 580,
+    protein: 38,
+    carbs: 48,
+    fat: 22,
+    cookTime: 15,
+    cost: 9,
     difficulty: 'Easy',
-    ingredients: [
-      '1 large sweet potato',
-      '3/4 cup black beans',
-      '1/4 cup quinoa',
-      '2 tbsp tahini',
-      'Mixed greens',
-      '1/4 cup pumpkin seeds',
-      'Lime juice'
-    ],
-    instructions: [
-      'Roast cubed sweet potato at 400°F for 25 minutes',
-      'Cook quinoa according to package directions',
-      'Warm black beans with spices',
-      'Make tahini dressing with lime juice',
-      'Assemble bowl with greens as base',
-      'Top with sweet potato, quinoa, beans, and seeds',
-      'Drizzle with tahini dressing'
-    ]
-  }
+    ingredients: ['Whole wheat tortilla', 'Turkey breast', 'Hummus', 'Vegetables', 'Cheese'],
+    instructions: ['Warm tortilla', 'Spread hummus', 'Add turkey and vegetables', 'Roll tightly'],
+    logged: false,
+  },
 ];
 
 const CATEGORIES = [
-  { key: 'all', label: 'All Recipes', icon: 'fork.knife' },
-  { key: 'weight-loss', label: 'Weight Loss', icon: 'minus.circle' },
-  { key: 'muscle-gain', label: 'Muscle Gain', icon: 'plus.circle' },
-  { key: 'maintenance', label: 'Maintenance', icon: 'equal.circle' },
+  { key: 'all', label: 'All Recipes', icon: 'fork.knife', color: colors.text },
+  { key: 'weight-loss', label: 'Weight Loss', icon: 'minus.circle', color: colors.error },
+  { key: 'muscle-gain', label: 'Muscle Gain', icon: 'plus.circle', color: colors.secondary },
+  { key: 'maintenance', label: 'Maintenance', icon: 'equal.circle', color: colors.primary },
 ];
 
 export default function NutritionScreen() {
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const { logMeal, addXp } = useGameification();
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
+  const [recipes, setRecipes] = useState<Recipe[]>(SAMPLE_RECIPES);
+  const [dailyCalories, setDailyCalories] = useState(1250);
+  const [targetCalories] = useState(2000);
 
   const filteredRecipes = selectedCategory === 'all' 
-    ? SAMPLE_RECIPES 
-    : SAMPLE_RECIPES.filter(recipe => recipe.category === selectedCategory);
+    ? recipes 
+    : recipes.filter(recipe => recipe.category === selectedCategory);
+
+  const loggedRecipes = recipes.filter(recipe => recipe.logged);
+  const caloriesProgress = dailyCalories / targetCalories;
+
+  const handleLogMeal = (recipe: Recipe) => {
+    setRecipes(prev => prev.map(r => 
+      r.id === recipe.id ? { ...r, logged: true } : r
+    ));
+    setDailyCalories(prev => prev + recipe.calories);
+    
+    logMeal(); // This will trigger XP gain and achievement checks
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
+    setSelectedRecipe(null);
+  };
+
+  const renderNutritionHeader = () => (
+    <View style={styles.nutritionHeader}>
+      <Text style={styles.headerTitle}>Today's Nutrition</Text>
+      
+      <View style={styles.caloriesContainer}>
+        <View style={styles.caloriesInfo}>
+          <Text style={styles.caloriesNumber}>{dailyCalories}</Text>
+          <Text style={styles.caloriesLabel}>/ {targetCalories} calories</Text>
+        </View>
+        
+        <View style={styles.progressRing}>
+          <View style={styles.progressBackground}>
+            <View 
+              style={[
+                styles.progressFill, 
+                { width: `${Math.min(caloriesProgress * 100, 100)}%` }
+              ]} 
+            />
+          </View>
+          <Text style={styles.progressText}>
+            {Math.round(caloriesProgress * 100)}%
+          </Text>
+        </View>
+      </View>
+
+      <View style={styles.macrosContainer}>
+        <View style={styles.macroItem}>
+          <Text style={styles.macroValue}>
+            {loggedRecipes.reduce((sum, recipe) => sum + recipe.protein, 0)}g
+          </Text>
+          <Text style={styles.macroLabel}>Protein</Text>
+        </View>
+        <View style={styles.macroItem}>
+          <Text style={styles.macroValue}>
+            {loggedRecipes.reduce((sum, recipe) => sum + recipe.carbs, 0)}g
+          </Text>
+          <Text style={styles.macroLabel}>Carbs</Text>
+        </View>
+        <View style={styles.macroItem}>
+          <Text style={styles.macroValue}>
+            {loggedRecipes.reduce((sum, recipe) => sum + recipe.fat, 0)}g
+          </Text>
+          <Text style={styles.macroLabel}>Fat</Text>
+        </View>
+      </View>
+    </View>
+  );
 
   const renderCategorySelector = () => (
     <View style={styles.categorySelector}>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        {CATEGORIES.map(category => (
-          <TouchableOpacity
-            key={category.key}
-            style={[
-              styles.categoryButton,
-              selectedCategory === category.key && styles.selectedCategoryButton
-            ]}
-            onPress={() => setSelectedCategory(category.key)}
-          >
-            <IconSymbol 
-              name={category.icon as any} 
-              size={20} 
-              color={selectedCategory === category.key ? colors.card : colors.text} 
-            />
-            <Text style={[
-              styles.categoryButtonText,
-              selectedCategory === category.key && styles.selectedCategoryButtonText
-            ]}>
-              {category.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
+        <View style={styles.categoryButtons}>
+          {CATEGORIES.map(category => (
+            <TouchableOpacity
+              key={category.key}
+              style={[
+                styles.categoryButton,
+                selectedCategory === category.key && styles.selectedCategoryButton
+              ]}
+              onPress={() => setSelectedCategory(category.key)}
+            >
+              <IconSymbol 
+                name={category.icon as any} 
+                size={20} 
+                color={selectedCategory === category.key ? colors.card : category.color} 
+              />
+              <Text style={[
+                styles.categoryButtonText,
+                selectedCategory === category.key && styles.selectedCategoryButtonText
+              ]}>
+                {category.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
 
-  const renderRecipeCard = (recipe: Recipe) => (
-    <TouchableOpacity
-      key={recipe.id}
-      style={styles.recipeCard}
-      onPress={() => setSelectedRecipe(recipe)}
-    >
-      <View style={styles.recipeHeader}>
-        <Text style={styles.recipeName}>{recipe.name}</Text>
-        <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(recipe.category) }]}>
-          <Text style={styles.categoryBadgeText}>{recipe.difficulty}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.recipeStats}>
-        <View style={styles.statItem}>
-          <IconSymbol name="flame" size={16} color={colors.accent} />
-          <Text style={styles.statText}>{recipe.calories} cal</Text>
-        </View>
-        <View style={styles.statItem}>
-          <IconSymbol name="clock" size={16} color={colors.primary} />
-          <Text style={styles.statText}>{recipe.cookTime} min</Text>
-        </View>
-        <View style={styles.statItem}>
-          <IconSymbol name="dollarsign.circle" size={16} color={colors.secondary} />
-          <Text style={styles.statText}>${recipe.cost.toFixed(2)}</Text>
-        </View>
-      </View>
-      
-      <View style={styles.macros}>
-        <View style={styles.macroItem}>
-          <Text style={styles.macroValue}>{recipe.protein}g</Text>
-          <Text style={styles.macroLabel}>Protein</Text>
-        </View>
-        <View style={styles.macroItem}>
-          <Text style={styles.macroValue}>{recipe.carbs}g</Text>
-          <Text style={styles.macroLabel}>Carbs</Text>
-        </View>
-        <View style={styles.macroItem}>
-          <Text style={styles.macroValue}>{recipe.fat}g</Text>
-          <Text style={styles.macroLabel}>Fat</Text>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  const getCategoryColor = (category: string) => {
+    const categoryData = CATEGORIES.find(cat => cat.key === category);
+    return categoryData?.color || colors.primary;
+  };
+
+  const renderRecipeCard = (recipe: Recipe) => {
+    const scale = useSharedValue(1);
+    
+    const animatedStyle = useAnimatedStyle(() => ({
+      transform: [{ scale: scale.value }],
+    }));
+
+    const handlePress = () => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      scale.value = withSpring(0.98, {}, () => {
+        scale.value = withSpring(1);
+      });
+      setSelectedRecipe(recipe);
+    };
+
+    return (
+      <TouchableOpacity onPress={handlePress}>
+        <Animated.View style={[styles.recipeCard, animatedStyle]}>
+          <View style={styles.recipeHeader}>
+            <View style={styles.recipeInfo}>
+              <Text style={styles.recipeName}>{recipe.name}</Text>
+              <View style={styles.recipeMetrics}>
+                <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(recipe.category) }]}>
+                  <Text style={styles.categoryBadgeText}>
+                    {recipe.category.replace('-', ' ').toUpperCase()}
+                  </Text>
+                </View>
+                <Text style={styles.difficultyText}>{recipe.difficulty}</Text>
+              </View>
+            </View>
+            
+            {recipe.logged && (
+              <View style={styles.loggedIndicator}>
+                <IconSymbol name="checkmark.circle.fill" size={24} color={colors.success} />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.nutritionInfo}>
+            <View style={styles.nutritionItem}>
+              <IconSymbol name="flame.fill" size={16} color={colors.accent} />
+              <Text style={styles.nutritionText}>{recipe.calories} cal</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <IconSymbol name="timer" size={16} color={colors.primary} />
+              <Text style={styles.nutritionText}>{recipe.cookTime} min</Text>
+            </View>
+            <View style={styles.nutritionItem}>
+              <IconSymbol name="dollarsign.circle" size={16} color={colors.secondary} />
+              <Text style={styles.nutritionText}>${recipe.cost}</Text>
+            </View>
+          </View>
+
+          <View style={styles.macroBreakdown}>
+            <View style={styles.macroBar}>
+              <View style={[styles.macroSegment, { flex: recipe.protein, backgroundColor: colors.error }]} />
+              <View style={[styles.macroSegment, { flex: recipe.carbs, backgroundColor: colors.secondary }]} />
+              <View style={[styles.macroSegment, { flex: recipe.fat, backgroundColor: colors.accent }]} />
+            </View>
+            <View style={styles.macroLabels}>
+              <Text style={styles.macroLabelText}>P: {recipe.protein}g</Text>
+              <Text style={styles.macroLabelText}>C: {recipe.carbs}g</Text>
+              <Text style={styles.macroLabelText}>F: {recipe.fat}g</Text>
+            </View>
+          </View>
+        </Animated.View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderRecipeDetail = () => {
     if (!selectedRecipe) return null;
@@ -269,43 +307,67 @@ export default function NutritionScreen() {
     return (
       <View style={styles.recipeDetail}>
         <View style={styles.detailHeader}>
-          <TouchableOpacity onPress={() => setSelectedRecipe(null)}>
+          <TouchableOpacity 
+            style={styles.backButton}
+            onPress={() => setSelectedRecipe(null)}
+          >
             <IconSymbol name="chevron.left" size={24} color={colors.primary} />
+            <Text style={styles.backButtonText}>Back</Text>
           </TouchableOpacity>
+          
           <Text style={styles.detailTitle}>{selectedRecipe.name}</Text>
-          <View style={{ width: 24 }} />
+          
+          {!selectedRecipe.logged && (
+            <TouchableOpacity 
+              style={styles.logMealButton}
+              onPress={() => handleLogMeal(selectedRecipe)}
+            >
+              <IconSymbol name="plus.circle.fill" size={20} color={colors.card} />
+              <Text style={styles.logMealButtonText}>Log Meal</Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <ScrollView style={styles.detailContent}>
-          <View style={styles.detailStats}>
-            <View style={styles.detailStatItem}>
-              <IconSymbol name="flame" size={20} color={colors.accent} />
-              <Text style={styles.detailStatText}>{selectedRecipe.calories} calories</Text>
-            </View>
-            <View style={styles.detailStatItem}>
-              <IconSymbol name="clock" size={20} color={colors.primary} />
-              <Text style={styles.detailStatText}>{selectedRecipe.cookTime} minutes</Text>
-            </View>
-            <View style={styles.detailStatItem}>
-              <IconSymbol name="dollarsign.circle" size={20} color={colors.secondary} />
-              <Text style={styles.detailStatText}>${selectedRecipe.cost.toFixed(2)} per serving</Text>
+          <View style={styles.detailNutrition}>
+            <Text style={styles.sectionTitle}>Nutrition Facts</Text>
+            <View style={styles.nutritionGrid}>
+              <View style={styles.nutritionDetailItem}>
+                <Text style={styles.nutritionDetailValue}>{selectedRecipe.calories}</Text>
+                <Text style={styles.nutritionDetailLabel}>Calories</Text>
+              </View>
+              <View style={styles.nutritionDetailItem}>
+                <Text style={styles.nutritionDetailValue}>{selectedRecipe.protein}g</Text>
+                <Text style={styles.nutritionDetailLabel}>Protein</Text>
+              </View>
+              <View style={styles.nutritionDetailItem}>
+                <Text style={styles.nutritionDetailValue}>{selectedRecipe.carbs}g</Text>
+                <Text style={styles.nutritionDetailLabel}>Carbs</Text>
+              </View>
+              <View style={styles.nutritionDetailItem}>
+                <Text style={styles.nutritionDetailValue}>{selectedRecipe.fat}g</Text>
+                <Text style={styles.nutritionDetailLabel}>Fat</Text>
+              </View>
             </View>
           </View>
 
-          <View style={styles.detailSection}>
+          <View style={styles.ingredientsSection}>
             <Text style={styles.sectionTitle}>Ingredients</Text>
             {selectedRecipe.ingredients.map((ingredient, index) => (
               <View key={index} style={styles.ingredientItem}>
-                <Text style={styles.ingredientText}>• {ingredient}</Text>
+                <IconSymbol name="circle.fill" size={6} color={colors.primary} />
+                <Text style={styles.ingredientText}>{ingredient}</Text>
               </View>
             ))}
           </View>
 
-          <View style={styles.detailSection}>
+          <View style={styles.instructionsSection}>
             <Text style={styles.sectionTitle}>Instructions</Text>
             {selectedRecipe.instructions.map((instruction, index) => (
               <View key={index} style={styles.instructionItem}>
-                <Text style={styles.instructionNumber}>{index + 1}</Text>
+                <View style={styles.stepNumber}>
+                  <Text style={styles.stepNumberText}>{index + 1}</Text>
+                </View>
                 <Text style={styles.instructionText}>{instruction}</Text>
               </View>
             ))}
@@ -313,15 +375,6 @@ export default function NutritionScreen() {
         </ScrollView>
       </View>
     );
-  };
-
-  const getCategoryColor = (category: string) => {
-    switch (category) {
-      case 'weight-loss': return colors.error;
-      case 'muscle-gain': return colors.secondary;
-      case 'maintenance': return colors.primary;
-      default: return colors.textSecondary;
-    }
   };
 
   if (selectedRecipe) {
@@ -334,42 +387,123 @@ export default function NutritionScreen() {
 
   return (
     <SafeAreaView style={[commonStyles.container]} edges={['top']}>
-      <View style={styles.header}>
-        <Text style={commonStyles.title}>Nutrition Guide</Text>
-        <Text style={commonStyles.textSecondary}>Healthy & affordable recipes for your goals</Text>
-      </View>
-
-      {renderCategorySelector()}
-
       <ScrollView 
-        style={styles.content}
+        style={styles.container}
         contentContainerStyle={[
           styles.scrollContent,
           Platform.OS !== 'ios' && styles.scrollContentWithTabBar
         ]}
       >
-        {filteredRecipes.map(renderRecipeCard)}
+        {renderNutritionHeader()}
+        {renderCategorySelector()}
+        
+        <View style={styles.recipesContainer}>
+          <Text style={styles.sectionTitle}>
+            {selectedCategory === 'all' ? 'All Recipes' : CATEGORIES.find(c => c.key === selectedCategory)?.label}
+          </Text>
+          
+          {filteredRecipes.map(renderRecipeCard)}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  header: {
+  container: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  scrollContent: {
     paddingHorizontal: 20,
     paddingVertical: 16,
+  },
+  scrollContentWithTabBar: {
+    paddingBottom: 100,
+  },
+  nutritionHeader: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 16,
+  },
+  caloriesContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  caloriesInfo: {
+    flex: 1,
+  },
+  caloriesNumber: {
+    fontSize: 32,
+    fontWeight: '800',
+    color: colors.primary,
+  },
+  caloriesLabel: {
+    fontSize: 16,
+    color: colors.textSecondary,
+  },
+  progressRing: {
     alignItems: 'center',
   },
+  progressBackground: {
+    width: 80,
+    height: 8,
+    backgroundColor: colors.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 4,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.primary,
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.text,
+  },
+  macrosContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  macroItem: {
+    alignItems: 'center',
+  },
+  macroValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+  },
+  macroLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 2,
+  },
   categorySelector: {
-    paddingHorizontal: 20,
-    marginBottom: 16,
+    marginBottom: 20,
+  },
+  categoryButtons: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 4,
   },
   categoryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 8,
-    marginRight: 12,
     borderRadius: 20,
     backgroundColor: colors.card,
     borderWidth: 1,
@@ -388,111 +522,8 @@ const styles = StyleSheet.create({
   selectedCategoryButtonText: {
     color: colors.card,
   },
-  content: {
+  recipesContainer: {
     flex: 1,
-  },
-  scrollContent: {
-    paddingHorizontal: 20,
-  },
-  scrollContentWithTabBar: {
-    paddingBottom: 100,
-  },
-  recipeCard: {
-    ...commonStyles.card,
-    marginBottom: 16,
-  },
-  recipeHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  recipeName: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: colors.text,
-    flex: 1,
-  },
-  categoryBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-  categoryBadgeText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: colors.card,
-  },
-  recipeStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
-  },
-  statItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  statText: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    marginLeft: 4,
-  },
-  macros: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
-  },
-  macroItem: {
-    alignItems: 'center',
-  },
-  macroValue: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  macroLabel: {
-    fontSize: 12,
-    color: colors.textSecondary,
-    marginTop: 2,
-  },
-  recipeDetail: {
-    flex: 1,
-  },
-  detailHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.border,
-  },
-  detailTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: colors.text,
-  },
-  detailContent: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
-  detailStats: {
-    paddingVertical: 20,
-  },
-  detailStatItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  detailStatText: {
-    fontSize: 16,
-    color: colors.text,
-    marginLeft: 12,
-  },
-  detailSection: {
-    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 20,
@@ -500,29 +531,202 @@ const styles = StyleSheet.create({
     color: colors.text,
     marginBottom: 16,
   },
+  recipeCard: {
+    backgroundColor: colors.card,
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+    boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
+    elevation: 3,
+  },
+  recipeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  recipeInfo: {
+    flex: 1,
+  },
+  recipeName: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  recipeMetrics: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  categoryBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  categoryBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: colors.card,
+  },
+  difficultyText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    fontWeight: '600',
+  },
+  loggedIndicator: {
+    marginLeft: 12,
+  },
+  nutritionInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginBottom: 12,
+  },
+  nutritionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  nutritionText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginLeft: 4,
+  },
+  macroBreakdown: {
+    marginTop: 8,
+  },
+  macroBar: {
+    flexDirection: 'row',
+    height: 6,
+    borderRadius: 3,
+    overflow: 'hidden',
+    marginBottom: 6,
+  },
+  macroSegment: {
+    height: '100%',
+  },
+  macroLabels: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  macroLabelText: {
+    fontSize: 12,
+    color: colors.textSecondary,
+  },
+  recipeDetail: {
+    flex: 1,
+    backgroundColor: colors.background,
+  },
+  detailHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: colors.primary,
+    marginLeft: 4,
+  },
+  detailTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: colors.text,
+    flex: 1,
+    textAlign: 'center',
+  },
+  logMealButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.secondary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  logMealButtonText: {
+    color: colors.card,
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 4,
+  },
+  detailContent: {
+    flex: 1,
+    padding: 20,
+  },
+  detailNutrition: {
+    marginBottom: 24,
+  },
+  nutritionGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  nutritionDetailItem: {
+    alignItems: 'center',
+  },
+  nutritionDetailValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: colors.primary,
+  },
+  nutritionDetailLabel: {
+    fontSize: 12,
+    color: colors.textSecondary,
+    marginTop: 4,
+  },
+  ingredientsSection: {
+    marginBottom: 24,
+  },
   ingredientItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
   },
   ingredientText: {
     fontSize: 16,
     color: colors.text,
-    lineHeight: 24,
+    marginLeft: 12,
+  },
+  instructionsSection: {
+    marginBottom: 24,
   },
   instructionItem: {
     flexDirection: 'row',
-    marginBottom: 12,
+    alignItems: 'flex-start',
+    marginBottom: 16,
   },
-  instructionNumber: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: colors.primary,
+  stepNumber: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    backgroundColor: colors.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginRight: 12,
-    minWidth: 24,
+    marginTop: 2,
+  },
+  stepNumberText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: colors.card,
   },
   instructionText: {
     fontSize: 16,
     color: colors.text,
-    lineHeight: 24,
     flex: 1,
+    lineHeight: 24,
   },
 });

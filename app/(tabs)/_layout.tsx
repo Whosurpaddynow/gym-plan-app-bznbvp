@@ -1,76 +1,104 @@
 
 import React from 'react';
 import { Platform } from 'react-native';
-import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import { Stack } from 'expo-router';
+import { NativeTabs, Icon, Label } from 'expo-router/unstable-native-tabs';
 import FloatingTabBar, { TabBarItem } from '@/components/FloatingTabBar';
 import { colors } from '@/styles/commonStyles';
 
 export default function TabLayout() {
-  // Define the tabs configuration
   const tabs: TabBarItem[] = [
     {
       name: '(home)',
-      route: '/(tabs)/(home)/',
+      title: 'Home',
       icon: 'house.fill',
-      label: 'Home',
+      route: '/(tabs)/(home)',
     },
     {
       name: 'workout',
+      title: 'Workout',
+      icon: 'dumbbell',
       route: '/(tabs)/workout',
-      icon: 'dumbbell.fill',
-      label: 'Workout',
     },
     {
       name: 'nutrition',
-      route: '/(tabs)/nutrition',
+      title: 'Nutrition',
       icon: 'leaf.fill',
-      label: 'Nutrition',
+      route: '/(tabs)/nutrition',
+    },
+    {
+      name: 'achievements',
+      title: 'Achievements',
+      icon: 'trophy.fill',
+      route: '/(tabs)/achievements',
     },
     {
       name: 'profile',
-      route: '/(tabs)/profile',
+      title: 'Profile',
       icon: 'person.fill',
-      label: 'Profile',
+      route: '/(tabs)/profile',
     },
   ];
 
-  // Use NativeTabs for iOS, custom FloatingTabBar for Android and Web
   if (Platform.OS === 'ios') {
     return (
       <NativeTabs>
-        <NativeTabs.Trigger name="(home)">
-          <Icon sf="house.fill" drawable="ic_home" />
-          <Label>Home</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="workout">
-          <Icon sf="dumbbell.fill" drawable="ic_fitness" />
-          <Label>Workout</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="nutrition">
-          <Icon sf="leaf.fill" drawable="ic_nutrition" />
-          <Label>Nutrition</Label>
-        </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="profile">
-          <Icon sf="person.fill" drawable="ic_profile" />
-          <Label>Profile</Label>
-        </NativeTabs.Trigger>
+        <NativeTabs.Screen
+          name="(home)"
+          options={{
+            title: 'Home',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="house.fill" color={color} size={size} />
+            ),
+          }}
+        />
+        <NativeTabs.Screen
+          name="workout"
+          options={{
+            title: 'Workout',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="dumbbell" color={color} size={size} />
+            ),
+          }}
+        />
+        <NativeTabs.Screen
+          name="nutrition"
+          options={{
+            title: 'Nutrition',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="leaf.fill" color={color} size={size} />
+            ),
+          }}
+        />
+        <NativeTabs.Screen
+          name="achievements"
+          options={{
+            title: 'Achievements',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="trophy.fill" color={color} size={size} />
+            ),
+          }}
+        />
+        <NativeTabs.Screen
+          name="profile"
+          options={{
+            title: 'Profile',
+            tabBarIcon: ({ color, size }) => (
+              <Icon name="person.fill" color={color} size={size} />
+            ),
+          }}
+        />
       </NativeTabs>
     );
   }
 
-  // For Android and Web, use Stack navigation with custom floating tab bar
   return (
     <>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          animation: 'none', // Remove fade animation to prevent black screen flash
-        }}
-      >
+      <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(home)" />
         <Stack.Screen name="workout" />
         <Stack.Screen name="nutrition" />
+        <Stack.Screen name="achievements" />
         <Stack.Screen name="profile" />
       </Stack>
       <FloatingTabBar tabs={tabs} />

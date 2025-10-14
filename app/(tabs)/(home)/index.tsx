@@ -6,15 +6,61 @@ import { IconSymbol } from "@/components/IconSymbol";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, commonStyles } from "@/styles/commonStyles";
 import { useRouter } from "expo-router";
+import { useGameification } from "@/hooks/useGameification";
+import ProgressRing from "@/components/ProgressRing";
+import AchievementBadge from "@/components/AchievementBadge";
+import Animated, { 
+  useSharedValue, 
+  useAnimatedStyle, 
+  withSpring,
+  withSequence,
+  withDelay,
+} from 'react-native-reanimated';
+import * as Haptics from 'expo-haptics';
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { userStats, achievements, challenges, streakData, completeWorkout } = useGameification();
+
+  const motivationalQuotes = [
+    "The groundwork for all happiness is good health. - Leigh Hunt",
+    "Take care of your body. It's the only place you have to live. - Jim Rohn",
+    "A healthy outside starts from the inside. - Robert Urich",
+    "Your body can do it. It's your mind you need to convince. - Unknown",
+    "Fitness is not about being better than someone else. It's about being better than you used to be. - Unknown",
+  ];
+
+  const todaysQuote = motivationalQuotes[new Date().getDate() % motivationalQuotes.length];
 
   const quickStats = [
-    { label: 'Workouts This Week', value: '3', icon: 'dumbbell', color: colors.primary },
-    { label: 'Calories Today', value: '1,850', icon: 'flame', color: colors.accent },
-    { label: 'Weight Progress', value: '-2.5 lbs', icon: 'chart.line.uptrend.xyaxis', color: colors.secondary },
-    { label: 'Streak', value: '12 days', icon: 'calendar', color: colors.highlight },
+    { 
+      label: 'Level', 
+      value: userStats.level.toString(), 
+      icon: 'star.fill', 
+      color: colors.primary,
+      progress: (userStats.xp % 1000) / 1000,
+    },
+    { 
+      label: 'Streak', 
+      value: `${streakData.current} days`, 
+      icon: 'flame.fill', 
+      color: colors.error,
+      progress: Math.min(streakData.current / 30, 1),
+    },
+    { 
+      label: 'Workouts', 
+      value: userStats.totalWorkouts.toString(), 
+      icon: 'dumbbell', 
+      color: colors.secondary,
+      progress: (userStats.totalWorkouts % 10) / 10,
+    },
+    { 
+      label: 'XP Today', 
+      value: '150', 
+      icon: 'bolt.fill', 
+      color: colors.accent,
+      progress: 0.6,
+    },
   ];
 
   const quickActions = [
@@ -23,21 +69,30 @@ export default function HomeScreen() {
       description: 'Begin today\'s planned workout',
       icon: 'play.circle.fill',
       color: colors.primary,
-      onPress: () => router.push('/(tabs)/workout')
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        router.push('/(tabs)/workout');
+      }
     },
     { 
       title: 'Log Meal', 
       description: 'Track your nutrition intake',
       icon: 'plus.circle.fill',
       color: colors.secondary,
-      onPress: () => router.push('/(tabs)/nutrition')
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push('/(tabs)/nutrition');
+      }
     },
     { 
-      title: 'View Progress', 
-      description: 'Check your fitness journey',
-      icon: 'chart.bar.fill',
+      title: 'View Achievements', 
+      description: 'Check your progress & rewards',
+      icon: 'trophy.fill',
       color: colors.accent,
-      onPress: () => router.push('/(tabs)/profile')
+      onPress: () => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        router.push('/(tabs)/achievements');
+      }
     },
   ];
 
@@ -48,16 +103,52 @@ export default function HomeScreen() {
     completed: false,
   };
 
+  const renderWelcomeHeader = () => {
+    const getGreeting = () => {
+      const hour = new Date().getHours();
+      if (hour < 12) return 'Good morning';
+      if (hour < 17) return 'Good afternoon';
+      return 'Good evening';
+    };
+
+    return (
+      <View style={styles.welcomeHeader}>
+        <View style={styles.greetingContainer}>
+          <Text style={styles.greeting}>{getGreeting()}! 👋</Text>
+          <Text style={styles.subGreeting}>Ready to level up your fitness?</Text>
+        </View>
+        <TouchableOpacity 
+          style={styles.levelBadge}
+          onPress={() => router.push('/(tabs)/achievements')}
+        >
+          <IconSymbol name="star.fill" size={16} color={colors.card} />
+          <Text style={styles.levelText}>Lv. {userStats.level}</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+
   const renderQuickStats = () => (
     <View style={styles.statsContainer}>
-      <Text style={styles.sectionTitle}>Today's Overview</Text>
+      <Text style={styles.sectionTitle}>Today's Progress</Text>
       <View style={styles.statsGrid}>
         {quickStats.map((stat, index) => (
-          <View key={index} style={styles.statCard}>
-            <IconSymbol name={stat.icon as any} size={24} color={stat.color} />
+          <Animated.View 
+            key={index} 
+            style={styles.statCard}
+            entering={withDelay(index * 100, withSpring({}))}
+          >
+            <ProgressRing
+              progress={stat.progress}
+              size={50}
+              strokeWidth={4}
+              color={stat.color}
+            >
+              <IconSymbol name={stat.icon as any} size={20} color={stat.color} />
+            </ProgressRing>
             <Text style={styles.statValue}>{stat.value}</Text>
             <Text style={styles.statLabel}>{stat.label}</Text>
-          </View>
+          </Animated.View>
         ))}
       </View>
     </View>
@@ -65,16 +156,32 @@ export default function HomeScreen() {
 
   const renderTodaysWorkout = () => (
     <View style={styles.workoutContainer}>
-      <Text style={styles.sectionTitle}>Today's Workout</Text>
+      <View style={styles.workoutHeader}>
+        <Text style={styles.sectionTitle}>Today's Workout</Text>
+        <TouchableOpacity 
+          style={styles.completeWorkoutButton}
+          onPress={() => {
+            const result = completeWorkout();
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          }}
+        >
+          <IconSymbol name="checkmark.circle.fill" size={20} color={colors.card} />
+          <Text style={styles.completeWorkoutText}>Complete</Text>
+        </TouchableOpacity>
+      </View>
+      
       <View style={styles.workoutCard}>
-        <View style={styles.workoutHeader}>
+        <View style={styles.workoutInfo}>
           <View>
             <Text style={styles.workoutName}>{todaysWorkout.name}</Text>
             <Text style={styles.workoutDuration}>{todaysWorkout.duration}</Text>
           </View>
           <TouchableOpacity 
             style={styles.startButton}
-            onPress={() => router.push('/(tabs)/workout')}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              router.push('/(tabs)/workout');
+            }}
           >
             <IconSymbol name="play.fill" size={20} color={colors.card} />
             <Text style={styles.startButtonText}>Start</Text>
@@ -92,6 +199,72 @@ export default function HomeScreen() {
       </View>
     </View>
   );
+
+  const renderRecentAchievements = () => {
+    const recentAchievements = achievements.filter(a => a.unlocked).slice(0, 3);
+    
+    if (recentAchievements.length === 0) return null;
+
+    return (
+      <View style={styles.achievementsContainer}>
+        <View style={styles.achievementsHeader}>
+          <Text style={styles.sectionTitle}>Recent Achievements</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/achievements')}>
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+          <View style={styles.achievementsList}>
+            {recentAchievements.map(achievement => (
+              <AchievementBadge
+                key={achievement.id}
+                achievement={achievement}
+                size="medium"
+              />
+            ))}
+          </View>
+        </ScrollView>
+      </View>
+    );
+  };
+
+  const renderActiveChallenges = () => {
+    const activeChallenges = challenges.filter(c => c.isActive && !c.isCompleted).slice(0, 2);
+    
+    if (activeChallenges.length === 0) return null;
+
+    return (
+      <View style={styles.challengesContainer}>
+        <View style={styles.challengesHeader}>
+          <Text style={styles.sectionTitle}>Active Challenges</Text>
+          <TouchableOpacity onPress={() => router.push('/(tabs)/achievements')}>
+            <Text style={styles.viewAllText}>View All</Text>
+          </TouchableOpacity>
+        </View>
+        {activeChallenges.map(challenge => (
+          <View key={challenge.id} style={styles.challengeCard}>
+            <View style={styles.challengeInfo}>
+              <View style={[styles.challengeIcon, { backgroundColor: challenge.color }]}>
+                <IconSymbol name={challenge.icon as any} size={20} color={colors.card} />
+              </View>
+              <View style={styles.challengeText}>
+                <Text style={styles.challengeTitle}>{challenge.title}</Text>
+                <Text style={styles.challengeProgress}>
+                  {challenge.progress.current} / {challenge.progress.target}
+                </Text>
+              </View>
+            </View>
+            <ProgressRing
+              progress={challenge.progress.current / challenge.progress.target}
+              size={40}
+              strokeWidth={4}
+              color={challenge.color}
+            />
+          </View>
+        ))}
+      </View>
+    );
+  };
 
   const renderQuickActions = () => (
     <View style={styles.actionsContainer}>
@@ -121,10 +294,7 @@ export default function HomeScreen() {
     <View style={styles.quoteContainer}>
       <View style={styles.quoteCard}>
         <IconSymbol name="quote.bubble" size={32} color={colors.primary} />
-        <Text style={styles.quoteText}>
-          "The groundwork for all happiness is good health."
-        </Text>
-        <Text style={styles.quoteAuthor}>- Leigh Hunt</Text>
+        <Text style={styles.quoteText}>{todaysQuote}</Text>
       </View>
     </View>
   );
@@ -148,13 +318,11 @@ export default function HomeScreen() {
         ]}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <Text style={styles.greeting}>Good morning!</Text>
-          <Text style={styles.subGreeting}>Ready to crush your fitness goals?</Text>
-        </View>
-
+        {renderWelcomeHeader()}
         {renderQuickStats()}
         {renderTodaysWorkout()}
+        {renderRecentAchievements()}
+        {renderActiveChallenges()}
         {renderQuickActions()}
         {renderMotivationalQuote()}
       </ScrollView>
@@ -174,8 +342,14 @@ const styles = StyleSheet.create({
   scrollContentWithTabBar: {
     paddingBottom: 100,
   },
-  header: {
+  welcomeHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 24,
+  },
+  greetingContainer: {
+    flex: 1,
   },
   greeting: {
     fontSize: 28,
@@ -186,6 +360,20 @@ const styles = StyleSheet.create({
   subGreeting: {
     fontSize: 16,
     color: colors.textSecondary,
+  },
+  levelBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.primary,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  levelText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.card,
+    marginLeft: 4,
   },
   sectionTitle: {
     fontSize: 20,
@@ -198,40 +386,58 @@ const styles = StyleSheet.create({
   },
   statsGrid: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
     justifyContent: 'space-between',
   },
   statCard: {
-    width: '48%',
+    width: '23%',
     backgroundColor: colors.card,
     borderRadius: 12,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: colors.border,
     boxShadow: '0px 2px 8px rgba(0, 0, 0, 0.1)',
     elevation: 3,
   },
   statValue: {
-    fontSize: 24,
+    fontSize: 14,
     fontWeight: '700',
     color: colors.text,
     marginTop: 8,
-    marginBottom: 4,
+    marginBottom: 2,
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: 10,
     color: colors.textSecondary,
     textAlign: 'center',
   },
   workoutContainer: {
     marginBottom: 24,
   },
+  workoutHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  completeWorkoutButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.success,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 16,
+  },
+  completeWorkoutText: {
+    color: colors.card,
+    fontWeight: '600',
+    fontSize: 12,
+    marginLeft: 4,
+  },
   workoutCard: {
     ...commonStyles.card,
   },
-  workoutHeader: {
+  workoutInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -271,6 +477,71 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
     marginLeft: 8,
+  },
+  achievementsContainer: {
+    marginBottom: 24,
+  },
+  achievementsHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  viewAllText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.primary,
+  },
+  achievementsList: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingRight: 20,
+  },
+  challengesContainer: {
+    marginBottom: 24,
+  },
+  challengesHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  challengeCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  challengeInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  challengeIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  challengeText: {
+    flex: 1,
+  },
+  challengeTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: 2,
+  },
+  challengeProgress: {
+    fontSize: 12,
+    color: colors.textSecondary,
   },
   actionsContainer: {
     marginBottom: 24,
@@ -318,12 +589,7 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     color: colors.text,
     textAlign: 'center',
-    marginVertical: 16,
+    marginTop: 16,
     lineHeight: 24,
-  },
-  quoteAuthor: {
-    fontSize: 14,
-    color: colors.textSecondary,
-    fontWeight: '600',
   },
 });
