@@ -120,6 +120,82 @@ const CATEGORIES = [
   { key: 'maintenance', label: 'Maintenance', icon: 'equal.circle', color: colors.primary },
 ];
 
+interface RecipeCardProps {
+  recipe: Recipe;
+  onPress: (recipe: Recipe) => void;
+  getCategoryColor: (category: string) => string;
+}
+
+const RecipeCard = ({ recipe, onPress, getCategoryColor }: RecipeCardProps) => {
+  const scale = useSharedValue(1);
+  
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    scale.value = withSpring(0.98, {}, () => {
+      scale.value = withSpring(1);
+    });
+    onPress(recipe);
+  };
+
+  return (
+    <TouchableOpacity onPress={handlePress}>
+      <Animated.View style={[styles.recipeCard, animatedStyle]}>
+        <View style={styles.recipeHeader}>
+          <View style={styles.recipeInfo}>
+            <Text style={styles.recipeName}>{recipe.name}</Text>
+            <View style={styles.recipeMetrics}>
+              <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(recipe.category) }]}>
+                <Text style={styles.categoryBadgeText}>
+                  {recipe.category.replace('-', ' ').toUpperCase()}
+                </Text>
+              </View>
+              <Text style={styles.difficultyText}>{recipe.difficulty}</Text>
+            </View>
+          </View>
+          
+          {recipe.logged && (
+            <View style={styles.loggedIndicator}>
+              <IconSymbol name="checkmark.circle.fill" size={24} color={colors.success} />
+            </View>
+          )}
+        </View>
+
+        <View style={styles.nutritionInfo}>
+          <View style={styles.nutritionItem}>
+            <IconSymbol name="flame.fill" size={16} color={colors.accent} />
+            <Text style={styles.nutritionText}>{recipe.calories} cal</Text>
+          </View>
+          <View style={styles.nutritionItem}>
+            <IconSymbol name="timer" size={16} color={colors.primary} />
+            <Text style={styles.nutritionText}>{recipe.cookTime} min</Text>
+          </View>
+          <View style={styles.nutritionItem}>
+            <IconSymbol name="dollarsign.circle" size={16} color={colors.secondary} />
+            <Text style={styles.nutritionText}>${recipe.cost}</Text>
+          </View>
+        </View>
+
+        <View style={styles.macroBreakdown}>
+          <View style={styles.macroBar}>
+            <View style={[styles.macroSegment, { flex: recipe.protein, backgroundColor: colors.error }]} />
+            <View style={[styles.macroSegment, { flex: recipe.carbs, backgroundColor: colors.secondary }]} />
+            <View style={[styles.macroSegment, { flex: recipe.fat, backgroundColor: colors.accent }]} />
+          </View>
+          <View style={styles.macroLabels}>
+            <Text style={styles.macroLabelText}>P: {recipe.protein}g</Text>
+            <Text style={styles.macroLabelText}>C: {recipe.carbs}g</Text>
+            <Text style={styles.macroLabelText}>F: {recipe.fat}g</Text>
+          </View>
+        </View>
+      </Animated.View>
+    </TouchableOpacity>
+  );
+};
+
 export default function NutritionScreen() {
   const { logMeal, addXp } = useGameification();
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
@@ -231,76 +307,6 @@ export default function NutritionScreen() {
     return categoryData?.color || colors.primary;
   };
 
-  const renderRecipeCard = (recipe: Recipe) => {
-    const scale = useSharedValue(1);
-    
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-    }));
-
-    const handlePress = () => {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      scale.value = withSpring(0.98, {}, () => {
-        scale.value = withSpring(1);
-      });
-      setSelectedRecipe(recipe);
-    };
-
-    return (
-      <TouchableOpacity onPress={handlePress}>
-        <Animated.View style={[styles.recipeCard, animatedStyle]}>
-          <View style={styles.recipeHeader}>
-            <View style={styles.recipeInfo}>
-              <Text style={styles.recipeName}>{recipe.name}</Text>
-              <View style={styles.recipeMetrics}>
-                <View style={[styles.categoryBadge, { backgroundColor: getCategoryColor(recipe.category) }]}>
-                  <Text style={styles.categoryBadgeText}>
-                    {recipe.category.replace('-', ' ').toUpperCase()}
-                  </Text>
-                </View>
-                <Text style={styles.difficultyText}>{recipe.difficulty}</Text>
-              </View>
-            </View>
-            
-            {recipe.logged && (
-              <View style={styles.loggedIndicator}>
-                <IconSymbol name="checkmark.circle.fill" size={24} color={colors.success} />
-              </View>
-            )}
-          </View>
-
-          <View style={styles.nutritionInfo}>
-            <View style={styles.nutritionItem}>
-              <IconSymbol name="flame.fill" size={16} color={colors.accent} />
-              <Text style={styles.nutritionText}>{recipe.calories} cal</Text>
-            </View>
-            <View style={styles.nutritionItem}>
-              <IconSymbol name="timer" size={16} color={colors.primary} />
-              <Text style={styles.nutritionText}>{recipe.cookTime} min</Text>
-            </View>
-            <View style={styles.nutritionItem}>
-              <IconSymbol name="dollarsign.circle" size={16} color={colors.secondary} />
-              <Text style={styles.nutritionText}>${recipe.cost}</Text>
-            </View>
-          </View>
-
-          <View style={styles.macroBreakdown}>
-            <View style={styles.macroBar}>
-              <View style={[styles.macroSegment, { flex: recipe.protein, backgroundColor: colors.error }]} />
-              <View style={[styles.macroSegment, { flex: recipe.carbs, backgroundColor: colors.secondary }]} />
-              <View style={[styles.macroSegment, { flex: recipe.fat, backgroundColor: colors.accent }]} />
-            </View>
-            <View style={styles.macroLabels}>
-              <Text style={styles.macroLabelText}>P: {recipe.protein}g</Text>
-              <Text style={styles.macroLabelText}>C: {recipe.carbs}g</Text>
-              <Text style={styles.macroLabelText}>F: {recipe.fat}g</Text>
-            </View>
-          </View>
-        </Animated.View>
-      </TouchableOpacity>
-    );
-  };
-
   const renderRecipeDetail = () => {
     if (!selectedRecipe) return null;
 
@@ -402,7 +408,14 @@ export default function NutritionScreen() {
             {selectedCategory === 'all' ? 'All Recipes' : CATEGORIES.find(c => c.key === selectedCategory)?.label}
           </Text>
           
-          {filteredRecipes.map(renderRecipeCard)}
+          {filteredRecipes.map(recipe => (
+            <RecipeCard
+              key={recipe.id}
+              recipe={recipe}
+              onPress={setSelectedRecipe}
+              getCategoryColor={getCategoryColor}
+            />
+          ))}
         </View>
       </ScrollView>
     </SafeAreaView>

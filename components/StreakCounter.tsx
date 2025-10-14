@@ -35,7 +35,7 @@ export default function StreakCounter({
       withSpring(0.7),
       withSpring(1)
     );
-  }, [currentStreak]);
+  }, [currentStreak, flameScale, flameOpacity]);
 
   const flameAnimatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: flameScale.value }],

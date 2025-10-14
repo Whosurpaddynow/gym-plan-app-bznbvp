@@ -46,6 +46,101 @@ const EXERCISE_LIBRARY = [
   'Lat Pulldowns', 'Leg Press', 'Calf Raises', 'Russian Twists', 'Burpees', 'Mountain Climbers'
 ];
 
+interface ExerciseItemProps {
+  exercise: Exercise;
+  onUpdate: (exerciseId: string, field: keyof Exercise, value: string | number | boolean) => void;
+  onRemove: (exerciseId: string) => void;
+}
+
+const ExerciseItem = ({ exercise, onUpdate, onRemove }: ExerciseItemProps) => {
+  const scale = useSharedValue(1);
+  
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handleComplete = () => {
+    scale.value = withSequence(
+      withSpring(0.95),
+      withSpring(1)
+    );
+    onUpdate(exercise.id, 'completed', !exercise.completed);
+  };
+
+  return (
+    <Animated.View style={[styles.exerciseCard, animatedStyle]}>
+      <View style={styles.exerciseHeader}>
+        <TouchableOpacity
+          style={[
+            styles.completeButton,
+            exercise.completed && styles.completedButton
+          ]}
+          onPress={handleComplete}
+        >
+          <IconSymbol 
+            name={exercise.completed ? "checkmark.circle.fill" : "circle"} 
+            size={24} 
+            color={exercise.completed ? colors.success : colors.textSecondary} 
+          />
+        </TouchableOpacity>
+        
+        <View style={styles.exerciseInfo}>
+          <Text style={[
+            styles.exerciseName,
+            exercise.completed && styles.completedText
+          ]}>
+            {exercise.name}
+          </Text>
+          <Text style={styles.exerciseDetails}>
+            {exercise.sets} sets × {exercise.reps}
+            {exercise.weight && ` @ ${exercise.weight}`}
+          </Text>
+        </View>
+
+        <TouchableOpacity
+          style={styles.removeButton}
+          onPress={() => onRemove(exercise.id)}
+        >
+          <IconSymbol name="trash" size={20} color={colors.error} />
+        </TouchableOpacity>
+      </View>
+
+      {!exercise.completed && (
+        <View style={styles.exerciseInputs}>
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Sets</Text>
+            <TextInput
+              style={styles.input}
+              value={exercise.sets.toString()}
+              onChangeText={(text) => onUpdate(exercise.id, 'sets', parseInt(text) || 0)}
+              keyboardType="numeric"
+            />
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Reps</Text>
+            <TextInput
+              style={styles.input}
+              value={exercise.reps}
+              onChangeText={(text) => onUpdate(exercise.id, 'reps', text)}
+            />
+          </View>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.inputLabel}>Weight</Text>
+            <TextInput
+              style={styles.input}
+              value={exercise.weight || ''}
+              onChangeText={(text) => onUpdate(exercise.id, 'weight', text)}
+              placeholder="Optional"
+            />
+          </View>
+        </View>
+      )}
+    </Animated.View>
+  );
+};
+
 export default function WorkoutScreen() {
   const { completeWorkout, addXp } = useGameification();
   const [selectedDay, setSelectedDay] = useState('Monday');
@@ -272,95 +367,6 @@ export default function WorkoutScreen() {
     </View>
   );
 
-  const renderExercise = (exercise: Exercise) => {
-    const scale = useSharedValue(1);
-    
-    const animatedStyle = useAnimatedStyle(() => ({
-      transform: [{ scale: scale.value }],
-    }));
-
-    const handleComplete = () => {
-      scale.value = withSequence(
-        withSpring(0.95),
-        withSpring(1)
-      );
-      updateExercise(exercise.id, 'completed', !exercise.completed);
-    };
-
-    return (
-      <Animated.View key={exercise.id} style={[styles.exerciseCard, animatedStyle]}>
-        <View style={styles.exerciseHeader}>
-          <TouchableOpacity
-            style={[
-              styles.completeButton,
-              exercise.completed && styles.completedButton
-            ]}
-            onPress={handleComplete}
-          >
-            <IconSymbol 
-              name={exercise.completed ? "checkmark.circle.fill" : "circle"} 
-              size={24} 
-              color={exercise.completed ? colors.success : colors.textSecondary} 
-            />
-          </TouchableOpacity>
-          
-          <View style={styles.exerciseInfo}>
-            <Text style={[
-              styles.exerciseName,
-              exercise.completed && styles.completedText
-            ]}>
-              {exercise.name}
-            </Text>
-            <Text style={styles.exerciseDetails}>
-              {exercise.sets} sets × {exercise.reps}
-              {exercise.weight && ` @ ${exercise.weight}`}
-            </Text>
-          </View>
-
-          <TouchableOpacity
-            style={styles.removeButton}
-            onPress={() => removeExercise(exercise.id)}
-          >
-            <IconSymbol name="trash" size={20} color={colors.error} />
-          </TouchableOpacity>
-        </View>
-
-        {!exercise.completed && (
-          <View style={styles.exerciseInputs}>
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Sets</Text>
-              <TextInput
-                style={styles.input}
-                value={exercise.sets.toString()}
-                onChangeText={(text) => updateExercise(exercise.id, 'sets', parseInt(text) || 0)}
-                keyboardType="numeric"
-              />
-            </View>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Reps</Text>
-              <TextInput
-                style={styles.input}
-                value={exercise.reps}
-                onChangeText={(text) => updateExercise(exercise.id, 'reps', text)}
-              />
-            </View>
-            
-            <View style={styles.inputGroup}>
-              <Text style={styles.inputLabel}>Weight</Text>
-              <TextInput
-                style={styles.input}
-                value={exercise.weight || ''}
-                onChangeText={(text) => updateExercise(exercise.id, 'weight', text)}
-                placeholder="Optional"
-              />
-            </View>
-          </View>
-        )}
-      </Animated.View>
-    );
-  };
-
   const renderExerciseLibrary = () => (
     <View style={styles.exerciseLibrary}>
       <View style={styles.libraryHeader}>
@@ -418,7 +424,14 @@ export default function WorkoutScreen() {
               <Text style={styles.emptyStateSubtext}>Add exercises to get started!</Text>
             </View>
           ) : (
-            currentWorkout.exercises.map(renderExercise)
+            currentWorkout.exercises.map(exercise => (
+              <ExerciseItem
+                key={exercise.id}
+                exercise={exercise}
+                onUpdate={updateExercise}
+                onRemove={removeExercise}
+              />
+            ))
           )}
         </View>
 

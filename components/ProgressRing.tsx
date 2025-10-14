@@ -36,7 +36,7 @@ export default function ProgressRing({
   
   React.useEffect(() => {
     animatedProgress.value = withTiming(progress, { duration: 1000 });
-  }, [progress]);
+  }, [progress, animatedProgress]);
 
   const animatedProps = useAnimatedProps(() => {
     const strokeDashoffset = circumference * (1 - animatedProgress.value);
