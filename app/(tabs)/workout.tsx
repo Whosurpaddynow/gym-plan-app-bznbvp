@@ -15,6 +15,9 @@ import { IconSymbol } from '@/components/IconSymbol';
 import { colors, commonStyles } from '@/styles/commonStyles';
 import { useGameification } from '@/hooks/useGameification';
 import ProgressRing from '@/components/ProgressRing';
+import WorkoutPlanCard from '@/components/WorkoutPlanCard';
+import WorkoutPlanPreview from '@/components/WorkoutPlanPreview';
+import { WORKOUT_PLANS, WorkoutPlan } from '@/data/workoutPlans';
 import Animated, { 
   useSharedValue, 
   useAnimatedStyle, 
@@ -145,8 +148,12 @@ export default function WorkoutScreen() {
   const { completeWorkout, addXp } = useGameification();
   const [selectedDay, setSelectedDay] = useState('Monday');
   const [showExerciseLibrary, setShowExerciseLibrary] = useState(false);
+  const [showWorkoutPlans, setShowWorkoutPlans] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<WorkoutPlan | null>(null);
+  const [showPlanPreview, setShowPlanPreview] = useState(false);
   const [workoutStarted, setWorkoutStarted] = useState(false);
   const [workoutTimer, setWorkoutTimer] = useState(0);
+  const [currentView, setCurrentView] = useState<'schedule' | 'plans'>('schedule');
   
   const [workoutPlan, setWorkoutPlan] = useState<WorkoutDay[]>([
     {
@@ -254,6 +261,52 @@ export default function WorkoutScreen() {
     }
   };
 
+  const handleSelectWorkoutPlan = (plan: WorkoutPlan) => {
+    Alert.alert(
+      'Apply Workout Plan',
+      `This will replace your current workout schedule with "${plan.name}". Are you sure?`,
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { 
+          text: 'Apply Plan', 
+          style: 'default',
+          onPress: () => applyWorkoutPlan(plan)
+        }
+      ]
+    );
+  };
+
+  const applyWorkoutPlan = (plan: WorkoutPlan) => {
+    const newWorkoutPlan: WorkoutDay[] = DAYS_OF_WEEK.map(day => {
+      const planDay = plan.weeklySchedule[day];
+      if (planDay) {
+        return {
+          day,
+          exercises: planDay.exercises.map(exercise => ({
+            id: `${plan.id}-${exercise.id}`,
+            name: exercise.name,
+            sets: exercise.sets,
+            reps: exercise.reps,
+            weight: exercise.weight,
+            notes: exercise.notes,
+            completed: false,
+          }))
+        };
+      }
+      return { day, exercises: [] };
+    });
+
+    setWorkoutPlan(newWorkoutPlan);
+    setCurrentView('schedule');
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    
+    Alert.alert(
+      'Plan Applied! 🎉',
+      `"${plan.name}" has been applied to your workout schedule. You can now start your workouts!`,
+      [{ text: 'Great!', style: 'default' }]
+    );
+  };
+
   const startWorkout = () => {
     setWorkoutStarted(true);
     setWorkoutTimer(0);
@@ -285,6 +338,50 @@ export default function WorkoutScreen() {
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
+
+  const renderViewSelector = () => (
+    <View style={styles.viewSelector}>
+      <TouchableOpacity
+        style={[
+          styles.viewButton,
+          currentView === 'schedule' && styles.selectedViewButton
+        ]}
+        onPress={() => setCurrentView('schedule')}
+      >
+        <IconSymbol 
+          name="calendar" 
+          size={20} 
+          color={currentView === 'schedule' ? colors.card : colors.textSecondary} 
+        />
+        <Text style={[
+          styles.viewButtonText,
+          currentView === 'schedule' && styles.selectedViewButtonText
+        ]}>
+          My Schedule
+        </Text>
+      </TouchableOpacity>
+      
+      <TouchableOpacity
+        style={[
+          styles.viewButton,
+          currentView === 'plans' && styles.selectedViewButton
+        ]}
+        onPress={() => setCurrentView('plans')}
+      >
+        <IconSymbol 
+          name="doc.text" 
+          size={20} 
+          color={currentView === 'plans' ? colors.card : colors.textSecondary} 
+        />
+        <Text style={[
+          styles.viewButtonText,
+          currentView === 'plans' && styles.selectedViewButtonText
+        ]}>
+          Workout Plans
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   const renderWorkoutHeader = () => {
     const currentWorkout = getCurrentDayWorkout();
@@ -391,17 +488,39 @@ export default function WorkoutScreen() {
     </View>
   );
 
-  const currentWorkout = getCurrentDayWorkout();
-
-  return (
-    <SafeAreaView style={[commonStyles.container]} edges={['top']}>
+  const renderWorkoutPlans = () => (
+    <View style={styles.workoutPlansContainer}>
+      <View style={styles.plansHeader}>
+        <Text style={styles.plansTitle}>Pre-Made Workout Plans</Text>
+        <Text style={styles.plansSubtitle}>
+          Choose from professionally designed workout programs that target all muscle groups
+        </Text>
+      </View>
+      
       <ScrollView 
-        style={styles.container}
-        contentContainerStyle={[
-          styles.scrollContent,
-          Platform.OS !== 'ios' && styles.scrollContentWithTabBar
-        ]}
+        style={styles.plansList}
+        showsVerticalScrollIndicator={false}
       >
+        {WORKOUT_PLANS.map(plan => (
+          <WorkoutPlanCard
+            key={plan.id}
+            plan={plan}
+            onSelect={handleSelectWorkoutPlan}
+            onPreview={(plan) => {
+              setSelectedPlan(plan);
+              setShowPlanPreview(true);
+            }}
+          />
+        ))}
+      </ScrollView>
+    </View>
+  );
+
+  const renderScheduleView = () => {
+    const currentWorkout = getCurrentDayWorkout();
+
+    return (
+      <>
         {renderWorkoutHeader()}
         {renderDaySelector()}
 
@@ -421,7 +540,14 @@ export default function WorkoutScreen() {
             <View style={styles.emptyState}>
               <IconSymbol name="dumbbell" size={48} color={colors.textSecondary} />
               <Text style={styles.emptyStateText}>No exercises planned</Text>
-              <Text style={styles.emptyStateSubtext}>Add exercises to get started!</Text>
+              <Text style={styles.emptyStateSubtext}>Add exercises or choose a workout plan!</Text>
+              <TouchableOpacity
+                style={styles.browsePlansButton}
+                onPress={() => setCurrentView('plans')}
+              >
+                <IconSymbol name="doc.text" size={16} color={colors.primary} />
+                <Text style={styles.browsePlansButtonText}>Browse Workout Plans</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             currentWorkout.exercises.map(exercise => (
@@ -436,7 +562,33 @@ export default function WorkoutScreen() {
         </View>
 
         {showExerciseLibrary && renderExerciseLibrary()}
+      </>
+    );
+  };
+
+  return (
+    <SafeAreaView style={[commonStyles.container]} edges={['top']}>
+      <ScrollView 
+        style={styles.container}
+        contentContainerStyle={[
+          styles.scrollContent,
+          Platform.OS !== 'ios' && styles.scrollContentWithTabBar
+        ]}
+      >
+        {renderViewSelector()}
+        
+        {currentView === 'schedule' ? renderScheduleView() : renderWorkoutPlans()}
       </ScrollView>
+
+      <WorkoutPlanPreview
+        plan={selectedPlan}
+        visible={showPlanPreview}
+        onClose={() => {
+          setShowPlanPreview(false);
+          setSelectedPlan(null);
+        }}
+        onSelect={handleSelectWorkoutPlan}
+      />
     </SafeAreaView>
   );
 }
@@ -452,6 +604,36 @@ const styles = StyleSheet.create({
   },
   scrollContentWithTabBar: {
     paddingBottom: 100,
+  },
+  viewSelector: {
+    flexDirection: 'row',
+    backgroundColor: colors.card,
+    borderRadius: 12,
+    padding: 4,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  viewButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+  },
+  selectedViewButton: {
+    backgroundColor: colors.primary,
+  },
+  viewButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.textSecondary,
+    marginLeft: 6,
+  },
+  selectedViewButtonText: {
+    color: colors.card,
   },
   workoutHeader: {
     backgroundColor: colors.card,
@@ -655,6 +837,23 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.textSecondary,
     textAlign: 'center',
+    marginBottom: 20,
+  },
+  browsePlansButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: colors.primary,
+  },
+  browsePlansButtonText: {
+    color: colors.primary,
+    fontWeight: '600',
+    fontSize: 14,
+    marginLeft: 6,
   },
   exerciseLibrary: {
     position: 'absolute',
@@ -696,5 +895,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: colors.text,
     marginLeft: 12,
+  },
+  workoutPlansContainer: {
+    flex: 1,
+  },
+  plansHeader: {
+    marginBottom: 20,
+  },
+  plansTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: colors.text,
+    marginBottom: 8,
+  },
+  plansSubtitle: {
+    fontSize: 16,
+    color: colors.textSecondary,
+    lineHeight: 22,
+  },
+  plansList: {
+    flex: 1,
   },
 });
